@@ -45,24 +45,19 @@ keep_cols = [
 existing_cols = [c for c in keep_cols if c in gdf.columns]
 gdf = gdf[existing_cols].copy()
 
-# ===== 6. CRS 检查 =====
 if gdf.crs is None:
     gdf = gdf.set_crs(epsg=4326)
 elif gdf.crs.to_epsg() != 4326:
     gdf = gdf.to_crs(epsg=4326)
 
-# ===== 7. 删除空 geometry =====
 gdf = gdf[gdf.geometry.notnull()].copy()
 
-# campsites 应该都是 Point，保守一点还是过滤一下
 gdf = gdf[gdf.geometry.geom_type.isin(["Point", "MultiPoint"])].copy()
 
 print(f"Valid records after cleaning: {len(gdf)}")
 
-# ===== 8. geometry 改名为 geom =====
 gdf = gdf.rename_geometry("geom")
 
-# ===== 9. 导入数据库 =====
 gdf.to_postgis(
     name="kiwi_campsites",
     con=engine,

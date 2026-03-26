@@ -1,139 +1,282 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { GeoJsonObject } from "geojson";
+
 import reactLogo from "./assets/react.svg";
 import viteLogo from "./assets/vite.svg";
 import heroImg from "./assets/hero.png";
 import "./App.css";
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  GeoJSON,
+  useMap,
+} from "react-leaflet";
+
+type Track = {
+  id: number;
+  name: string;
+  difficulty: string;
+  completion_time: string;
+  introduction: string;
+  has_alerts: string;
+  geom_geojson: GeoJsonObject;
+  thumbnail_url: string;
+  source_page_url: string;
+};
+
+function FitBoundsToGeoJSON({ data }: { data: GeoJsonObject }) {
+  const map = useMap();
+  const geoJsonRef = useRef<L.GeoJSON | null>(null);
+
+  useEffect(() => {
+    if (!geoJsonRef.current) return;
+
+    const bounds = geoJsonRef.current.getBounds();
+
+    if (bounds.isValid()) {
+      map.fitBounds(bounds);
+    }
+  }, [data, map]);
+
+  return <GeoJSON ref={geoJsonRef} data={data} />;
+}
 
 function App() {
   const [count, setCount] = useState(0);
   const position: [number, number] = [-36.8485, 174.7633];
 
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [selectedTrack, setSelectedTrack] = useState<GeoJsonObject | null>(
+    null,
+  );
+
+  const [selectedDifficulty, setSelectedDifficulty] = useState("Easiest");
+  const [selectedRegionCode, setSelectedRegionCode] = useState("03");
+  const [regionGeoJson, setRegionGeoJson] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleRegionChange = async (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    const regionCode = event.target.value;
+    setSelectedRegionCode(regionCode);
+    setRegionGeoJson(null);
+
+    if (!regionCode) {
+      setRegionGeoJson(null);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/regions/${regionCode}`,
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch region polygon");
+      }
+
+      const data = await response.json();
+      // extract geometry only
+      const geometry = data?.geometry ?? data;
+      setRegionGeoJson(geometry);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleSearch = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/tracks/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          difficulty: selectedDifficulty,
+          selected_area: regionGeoJson,
+          limit: 2,
+          offset: 0,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Search request failed");
+      }
+
+      const data = await response.json();
+
+      setTracks(data);
+      setSelectedTrack(null);
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleShowTrack = (geojsonString: string) => {
+    try {
+      const parsedGeojson: GeoJsonObject = JSON.parse(geojsonString);
+      setSelectedTrack(parsedGeojson);
+    } catch (error) {
+      console.error("Invalid GeoJSON:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/tracks")
+      .then((res) => res.json())
+      .then((data: Track[]) => {
+        console.log("tracks from api:", data);
+        setTracks(data);
+      })
+      .catch((err) => {
+        console.error("Error fetching tracks:", err);
+      });
+  }, []);
+
+  useEffect(() => {
+    console.log("regionGeoJson changed");
+  }, [regionGeoJson]);
+
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="container-fluid vh-100 d-flex flex-column p-0">
+      <header className="navbar navbar-dark bg-dark px-3">
+        <div className="d-flex flex-column">
+          <span className="navbar-brand mb-0 h1">KiwiTrail</span>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
+      <div className="row flex-grow-1 g-0">
+        <aside className="col-3 border-end bg-body-tertiary p-3 overflow-auto">
+          <h5 className="mb-3">Search Tracks</h5>
+          <form onSubmit={handleSearch}>
+            <label htmlFor="regions" className="form-label">
+              Where I want to hike
+            </label>
+            <div className="mb-3">
+              <select
+                id="regions"
+                className="form-select"
+                aria-label="Default select example"
+                value={selectedRegionCode}
+                onChange={handleRegionChange}
+              >
+                <option value="">All New Zealand</option>
+                <option value="01">Northland Region</option>
+                <option value="02">Auckland</option>
+                <option value="03">Waikato Region</option>
+                <option value="04">Bay of Plenty Region</option>
+                <option value="05">Gisborne Region</option>
+                <option value="06">Hawke's Bay Region</option>
+                <option value="07">Taranaki Region</option>
+                <option value="08">Manawatū-Whanganui Region</option>
+                <option value="09">Wellington Region</option>
+                <option value="12">West Coast Region</option>
+                <option value="13">Canterbury Region</option>
+                <option value="14">Otago Region</option>
+                <option value="15">Southland Region</option>
+                <option value="16">Tasman Region</option>
+                <option value="17">Nelson Region</option>
+                <option value="18">Marlborough Region</option>
+                <option value="99">Area Outside Region</option>
+              </select>
+            </div>
+            <div className="mb-3">
+              <label htmlFor="difficulty" className="form-label">
+                Track Difficulty
+              </label>
+              <select
+                id="difficulty"
+                className="form-select"
+                aria-label="Default select example"
+                value={selectedDifficulty}
+                onChange={(e) => setSelectedDifficulty(e.target.value)}
+              >
+                <option value="Easiest">Easiest</option>
+                <option value="Easy">Easy</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Expert">Expert</option>
+              </select>
+            </div>
+            <div className="mb-3">
+              <label htmlFor="iwanttohave" className="form-label">
+                I also want to have
+              </label>
+              <input
+                className="form-control"
+                id="iwanttohave"
+                aria-describedby="emailHelp"
+              />
+            </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
+            <button type="submit" className="btn btn-primary">
+              Submit
+            </button>
+            {isLoading && (
+              <div className="mt-3">
+                <div
+                  className="progress"
+                  role="progressbar"
+                  aria-label="Searching tracks"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
                 >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
+                  <div
+                    className="progress-bar progress-bar-striped progress-bar-animated"
+                    style={{ width: "100%" }}
+                  >
+                    Searching tracks...
+                  </div>
+                </div>
+              </div>
+            )}
+          </form>
+          <div className="mt-3">
+            {tracks.length === 0 ? (
+              <p>No tracks found</p>
+            ) : (
+              tracks.map((track) => (
+                <button
+                  key={track.id}
+                  className="btn btn-outline-primary w-100 mb-2 text-start"
+                  onClick={() => handleShowTrack(track.geojson)}
                 >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+                  {track.name}
+                </button>
+              ))
+            )}
+          </div>
+        </aside>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-      <div style={{ height: "100vh", width: "100%" }}>
-        <MapContainer
-          center={position}
-          zoom={13}
-          style={{ height: "100%", width: "100%" }}
-        >
-          <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+        <main className="col-9 p-0">
+          <MapContainer
+            center={[-41, 174]}
+            zoom={6}
+            style={{ height: "100%", width: "100%" }}
+          >
+            <TileLayer
+              attribution="&copy; OpenStreetMap contributors"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
 
-          <Marker position={position}>
-            <Popup>Hello from KiwiTrail map</Popup>
-          </Marker>
-        </MapContainer>
+            {selectedTrack && <FitBoundsToGeoJSON data={selectedTrack} />}
+
+            {regionGeoJson && (
+              <GeoJSON key={selectedRegionCode} data={regionGeoJson} />
+            )}
+          </MapContainer>
+        </main>
       </div>
-    </>
+    </div>
   );
 }
 

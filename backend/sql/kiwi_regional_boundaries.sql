@@ -18,3 +18,6 @@ SET geom_simple = ST_Simplify(geom, 0.01);
 CREATE INDEX kiwi_geom_simple_gix
 ON kiwi_regional_boundaries
 USING GIST (geom_simple);
+
+UPDATE kiwi_regional_boundaries
+SET geom_simple = ST_Multi(ST_SimplifyPreserveTopology(geom, 0.01));

@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 shp_path = "/Users/alex/Downloads/statsnz-regional-council-2025-SHP/regional-council-2025.shp"
 db_url = "postgresql+psycopg2://alex@localhost:5432/postgres"
 
-table_name = "kiwi_regional_council_boundaries"
+table_name = "kiwi_regional_boundaries"
 
 gdf = gpd.read_file(shp_path)
 

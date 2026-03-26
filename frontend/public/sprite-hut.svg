@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" viewBox="0 0 40 40">
+  <ns0:path fill="currentColor" d="M0 0h40v40H0z" />
+  <ns0:g mask="url(#mask0_329_1312)">
+    <ns0:path fill="currentColor" d="M40 0H0v40h40z" />
+    <ns0:path fill="#fff" d="M32.754 34.579v-15.58h3.138L20.274 4.544 4.697 19h3.138v15.579h9.878v-12.71h5.132v12.71z" />
+  </ns0:g>
+</svg>

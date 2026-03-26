@@ -1,0 +1,35 @@
+/* Remove default popup box */
+.custom-popup .leaflet-popup-content-wrapper {
+  padding: 0px;
+  border: 1px solid #333;
+  border-radius: 0 !important;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* Remove inner margin */
+.custom-popup .leaflet-popup-content {
+  margin: 0;
+  border-radius: 0 !important;
+}
+
+.leaflet-popup-content p {
+  margin: 0;
+}
+
+/* Remove the little triangle pointer */
+.custom-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
+.custom-popup .card {
+  border-radius: 0 !important;
+}
+
+.custom-popup .leaflet-popup-content-wrapper,
+.custom-popup .leaflet-popup-tip,
+.custom-popup .card,
+.custom-popup .card-img-top,
+.custom-popup .card-body {
+  border-radius: 0 !important;
+}

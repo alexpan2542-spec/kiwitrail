@@ -9,7 +9,9 @@ from sqlalchemy.orm import Session
 
 from db import SessionLocal
 from model import KiwiHut
-from repositories.track_repository import select_tracks
+from repositories.campsite_repository import select_map_items_campsite
+from repositories.hut_repository import select_map_items_hut
+from repositories.track_repository import select_tracks, select_map_items_track
 from schema import TrackSearchRequest
 
 app = FastAPI()
@@ -37,8 +39,6 @@ def get_db():
     finally:
         db.close()
 
-
-
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
@@ -55,7 +55,7 @@ def get_region(region_code: str):
         SELECT region_name,
             JSON_BUILD_OBJECT(
             'type', 'Feature',
-            'geometry', ST_AsGeoJSON(geom_simple)::JSON,
+            'geometry', ST_AsGeoJSON(geom)::JSON,
             'properties', JSON_BUILD_OBJECT(
                 'region_code', region_code,
                 'region_name', region_name,
@@ -75,13 +75,8 @@ def get_region(region_code: str):
     region_name = row.region_name
     geojson = row.geojson
 
-    # test print
-    print(f"Region: {region_code}, {region_name}")
-    print(f"GeoJson: {geojson}")
-
     return geojson
 
-    return
 @app.post("/tracks/search")
 async def search_tracks(
     filters: TrackSearchRequest,
@@ -93,19 +88,6 @@ async def search_tracks(
 
     await asyncio.sleep(1)
     return result
-
-@app.post("/tracks/search1")
-def search_tracks(
-    filters: TrackSearchRequest,
-    db: Session = Depends(get_db)
-):
-
-    tracks = get_tracks(db, filters)
-
-    return {
-        "count": len(tracks),
-        "items": tracks
-    }
 
 @app.get("/tracks")
 def get_tracks(db: Session = Depends(get_db)):
@@ -147,3 +129,21 @@ def get_huts(db: Session = Depends(get_db)):
         }
         for hut in huts
     ]
+
+@app.post("/search/map")
+def search_map_items(
+    filters: TrackSearchRequest,
+    db: Session = Depends(get_db),
+):
+
+    tracks = select_map_items_track(db, filters)
+    huts = select_map_items_hut(db, filters)
+    campsites = select_map_items_campsite(db, filters)
+
+    items = [*tracks, *huts, *campsites]
+
+    return {
+        "count": len(items),
+        "items": items,
+    }
+

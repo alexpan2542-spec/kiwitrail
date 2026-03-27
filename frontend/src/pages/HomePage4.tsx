@@ -447,7 +447,7 @@ export default function HomePage2() {
                   className="btn btn-primary w-100"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Searching..." : "Submit"}
+                  {isLoading ? "Searching... ..." : "Submit"}
                 </button>
               </div>
             </form>

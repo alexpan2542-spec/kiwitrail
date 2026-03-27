@@ -105,7 +105,7 @@ type HutDetail = {
   source_page_url?: string;
 };
 
-type CampsiteDetail = {
+type CampsiteDetail1 = {
   id: number;
   name?: string;
   region?: string;

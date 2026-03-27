@@ -7,21 +7,13 @@ import {
   GeoJSON,
   useMap,
   ZoomControl,
+  LayersControl,
 } from "react-leaflet";
 import { useEffect, useRef, useState } from "react";
 import type { GeoJsonObject } from "geojson";
 import L from "leaflet";
 
-const trackIcon = L.divIcon({
-  html: `
-    <svg width="28" height="28" class="text-success">
-      <use href="/spritemap.svg#sprite-advanced-tramping-track" />
-    </svg>
-  `,
-  iconSize: [28, 28],
-  iconAnchor: [14, 28],
-  popupAnchor: [0, -28],
-});
+const { BaseLayer } = LayersControl;
 
 const createTrackIcon = (spriteId: string) =>
   L.divIcon({
@@ -75,6 +67,7 @@ type MapItem = {
   introduction?: string;
   type: MapItemType;
   region?: string;
+  bookable?: string;
   lat: number;
   lng: number;
   facilities?: string;
@@ -142,6 +135,10 @@ export default function HomePage2() {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [panelWidth, setPanelWidth] = useState(0);
 
+  const [showTracks, setShowTracks] = useState(true);
+  const [showHuts, setShowHuts] = useState(true);
+  const [showCampsites, setShowCampsites] = useState(true);
+
   const handleRegionChange = async (
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
@@ -184,6 +181,9 @@ export default function HomePage2() {
         body: JSON.stringify({
           difficulty: selectedDifficulty,
           selected_area: regionGeoJson,
+          show_tracks: showTracks,
+          show_huts: showHuts,
+          show_campsites: showCampsites,
           limit: 300,
           offset: 0,
         }),
@@ -234,12 +234,22 @@ export default function HomePage2() {
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <MapContainer
-        center={[-41.2865, 174.7762]}
+        center={[-41.2865, 170]}
         zoom={5}
         zoomControl={false}
         style={{ width: "100%", height: "100%" }}
       >
-        <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+        <LayersControl position="topright">
+          <BaseLayer checked name="CARTO Light">
+            <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+          </BaseLayer>
+          <BaseLayer name="Esri Satellite">
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              attribution="Tiles © Esri"
+            />
+          </BaseLayer>
+        </LayersControl>
         <ZoomControl position="topright" />
 
         {selectedTrack && (
@@ -317,12 +327,16 @@ export default function HomePage2() {
                       <strong>Region:</strong> {item.region}
                     </p>
                   )}
+                  {item.bookable && (
+                    <p className="card-text small">
+                      <strong>Bookable:</strong> {item.bookable}
+                    </p>
+                  )}
                   {item.facilities && (
                     <p className="card-text small">
                       <strong>Facilities:</strong> {item.facilities}
                     </p>
                   )}
-                  <p></p>
                   <a
                     href={item.source_page_url}
                     target="_blank"
@@ -336,7 +350,26 @@ export default function HomePage2() {
           </Marker>
         ))}
       </MapContainer>
-
+      <div
+        style={{
+          position: "absolute",
+          top: 16,
+          left: panelWidth + 32, // 👈 dynamic position
+          width: 260,
+          height: "300px",
+          background: "#fff",
+          borderRadius: 8,
+          boxShadow: "0 6px 24px rgba(0,0,0,0.16)",
+          zIndex: 1000,
+          padding: 16,
+        }}
+      >
+        <iframe
+          width="340"
+          height="470"
+          src="https://widgets.niwa.co.nz/summaries/nz/55858492/6/white"
+        ></iframe>
+      </div>
       <div
         style={{
           position: "absolute",
@@ -434,10 +467,43 @@ export default function HomePage2() {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="iwanttohave" className="form-label">
-                    I also want to have
-                  </label>
-                  <input className="form-control" id="iwanttohave" />
+                  <label className="form-label">Choose what you want</label>
+                  <div className="form-check">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id="tracks"
+                      checked={showTracks}
+                      onChange={(e) => setShowTracks(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="tracks">
+                      Tracks
+                    </label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id="huts"
+                      checked={showHuts}
+                      onChange={(e) => setShowHuts(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="huts">
+                      Huts
+                    </label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id="campsites"
+                      checked={showCampsites}
+                      onChange={(e) => setShowCampsites(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="campsites">
+                      Campsites
+                    </label>
+                  </div>
                 </div>
               </div>
 

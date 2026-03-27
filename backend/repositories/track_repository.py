@@ -53,8 +53,11 @@ def select_map_items_track(db: Session, filters):
             difficulty,
             completion_time,
             thumbnail_url,
-            source_page_url,
-            ST_AsGeoJSON(geom) AS geom_geojson
+            source_page_url,   
+            JSON_BUILD_OBJECT(
+                'type', 'Feature',
+                'geometry', ST_AsGeoJSON(geom)::JSON
+            ) AS geom_geojson
         FROM kiwi_tracks
         {where_sql}
         ORDER BY id ASC

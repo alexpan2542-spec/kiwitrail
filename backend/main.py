@@ -89,58 +89,31 @@ async def search_tracks(
     await asyncio.sleep(1)
     return result
 
-@app.get("/tracks")
-def get_tracks(db: Session = Depends(get_db)):
-
-    sql = text("""
-        SELECT
-            id,
-            name,
-            ST_AsGeoJSON(geom) AS geojson
-        FROM kiwi_tracks
-        WHERE geom IS NOT NULL limit 2
-    """)
-
-    result = db.execute(sql)
-
-    tracks = [
-        {
-            "id": row.id,
-            "name": row.name,
-            "geojson": row.geojson
-        }
-        for row in result
-    ]
-
-    return tracks
-@app.get("/huts")
-def get_huts(db: Session = Depends(get_db)):
-    huts = db.scalars(
-        select(KiwiHut).limit(10)
-    ).all()
-
-    return [
-        {
-            "id": hut.id,
-            "name": hut.name,
-            "region": hut.region,
-            "place": hut.place,
-            "bookable": hut.bookable,
-        }
-        for hut in huts
-    ]
-
 @app.post("/search/map")
 def search_map_items(
     filters: TrackSearchRequest,
     db: Session = Depends(get_db),
 ):
+    showTrack = filters.show_tracks
+    print(f"{showTrack}")
+    showHut = filters.show_huts
+    print(f"{showHut}")
+    showCampsite = filters.show_campsites
+    print(f"{showCampsite}")
 
-    tracks = select_map_items_track(db, filters)
-    huts = select_map_items_hut(db, filters)
-    campsites = select_map_items_campsite(db, filters)
+    items = []
 
-    items = [*tracks, *huts, *campsites]
+    if filters.show_tracks:
+        tracks = select_map_items_track(db, filters)
+        items.extend(tracks)
+
+    if filters.show_huts:
+        huts = select_map_items_hut(db, filters)
+        items.extend(huts)
+
+    if filters.show_campsites:
+        campsites = select_map_items_campsite(db, filters)
+        items.extend(campsites)
 
     return {
         "count": len(items),

@@ -33,11 +33,17 @@ def select_map_items_campsite(db: Session, filters):
             name,
             region,
             introduction,
+            facilities,
             'campsite' AS type,
             ST_Y(ST_PointOnSurface(geom)) AS lat,
             ST_X(ST_PointOnSurface(geom)) AS lng,
             source_page_url,
-            thumbnail_url AS thumbnail_url
+            thumbnail_url AS thumbnail_url,
+            CASE
+                WHEN bookable = TRUE THEN 'Yes'
+                WHEN bookable = FALSE THEN 'No'
+                ELSE NULL
+            END AS bookable_text
         FROM kiwi_campsites
         {where_sql}
         ORDER BY id ASC
@@ -52,11 +58,13 @@ def select_map_items_campsite(db: Session, filters):
             "name": row["name"],
             "region": row["region"],
             "introduction": row["introduction"],
+            "facilities": row["facilities"],
             "type": row["type"],
             "lat": float(row["lat"]),
             "lng": float(row["lng"]),
             "thumbnail_url": row["thumbnail_url"],
             "source_page_url": row["source_page_url"],
+            "bookable": row["bookable_text"],
         }
         for row in rows
     ]

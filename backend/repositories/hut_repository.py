@@ -32,6 +32,7 @@ def select_map_items_hut(db: Session, filters):
             name,
             region,
             facilities,
+            bookable,
             'hut' AS type,
             ST_Y(geom) AS lat,
             ST_X(geom) AS lng,
@@ -56,6 +57,7 @@ def select_map_items_hut(db: Session, filters):
             "lng": float(row["lng"]),
             "thumbnail_url": row["thumbnail_url"],
             "source_page_url": row["source_page_url"],
+            "bookable": row["bookable"],
         }
         for row in rows
     ]

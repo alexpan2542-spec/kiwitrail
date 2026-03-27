@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS kiwi_tracks;
 
 CREATE TABLE kiwi_tracks (
     id SERIAL PRIMARY KEY,
@@ -17,7 +18,7 @@ CREATE TABLE kiwi_tracks (
 
     source_loaded_at TIMESTAMP,
 
-    geom geometry(LineString, 4326)
+    geom geometry(Geometry, 4326)
 );
 
 CREATE INDEX idx_tracks_geom
@@ -26,4 +27,3 @@ USING GIST (geom);
 
 CREATE INDEX idx_tracks_difficulty
 ON kiwi_tracks (difficulty);
-

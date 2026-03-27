@@ -99,7 +99,7 @@ function HomePage() {
         body: JSON.stringify({
           difficulty: selectedDifficulty,
           selected_area: regionGeoJson,
-          limit: 3,
+          limit: 10,
           offset: 0,
         }),
       });

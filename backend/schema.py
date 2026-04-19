@@ -14,6 +14,8 @@ class TrackSearchRequest(BaseModel):
     show_tracks: bool = True
     show_huts: bool = True
     show_campsites: bool = True
+    show_weather_station: bool = True
 
+    fuzzy_search: str | None = None
     limit: int = Field(default=20, ge=1, le=1000)
     offset: int = Field(default=0, ge=0)

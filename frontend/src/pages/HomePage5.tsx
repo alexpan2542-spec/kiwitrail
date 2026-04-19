@@ -138,6 +138,7 @@ export default function HomePage2() {
   const [showTracks, setShowTracks] = useState(true);
   const [showHuts, setShowHuts] = useState(true);
   const [showCampsites, setShowCampsites] = useState(true);
+  const [showWeatherStation, setShowWeatherStation] = useState(true);
 
   const handleRegionChange = async (
     event: React.ChangeEvent<HTMLSelectElement>,
@@ -502,6 +503,21 @@ export default function HomePage2() {
                     />
                     <label className="form-check-label" htmlFor="campsites">
                       Campsites
+                    </label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      id="weather_station"
+                      checked={showWeatherStation}
+                      onChange={(e) => setShowWeatherStation(e.target.checked)}
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="weather_station"
+                    >
+                      Weahter Station
                     </label>
                   </div>
                 </div>

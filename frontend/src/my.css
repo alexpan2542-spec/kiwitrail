@@ -30,6 +30,24 @@
 .custom-popup .leaflet-popup-tip,
 .custom-popup .card,
 .custom-popup .card-img-top,
-.custom-popup .card-body {
+.custom-popup .card-body,
+.custom-popup .card-body p {
   border-radius: 0 !important;
+  margin: 0;
+}
+
+.detail-popup .card {
+  border-radius: 0 !important;
+}
+
+.detail-popup .card {
+  padding: auto;
+}
+
+.detail-popup .card-img-top,
+.detail-popup .card-body,
+.detail-popup .card-body p {
+  border-radius: 0 !important;
+  font-size: 0.87em;
+  margin: 0;
 }

@@ -18,7 +18,7 @@ const { BaseLayer } = LayersControl;
 const createTrackIcon = (spriteId: string) =>
   L.divIcon({
     html: `
-      <svg width="28" height="28" class="text-success">
+      <svg width="28" height="28" class="text-primary">
         <use href="/spritemap.svg#${spriteId}" />
       </svg>
     `,
@@ -40,7 +40,7 @@ const trackIconsByDifficulty: Record<string, L.DivIcon> = {
 const defaultTrackIcon = createTrackIcon("sprite-advanced-tramping-track");
 
 const hutIcon = L.divIcon({
-  html: `<svg width="28" height="28" class="text-success">
+  html: `<svg width="28" height="28" class="text-primary">
       <use href="/spritemap.svg#sprite-hut" />
     </svg>
   `,
@@ -50,7 +50,7 @@ const hutIcon = L.divIcon({
 });
 
 const campsiteIcon = L.divIcon({
-  html: `<svg width="28" height="28" class="text-success">
+  html: `<svg width="28" height="28" class="text-primary">
       <use href="/spritemap.svg#sprite-camping" />
     </svg>
   `,
@@ -240,14 +240,17 @@ export default function HomePage2() {
         style={{ width: "100%", height: "100%" }}
       >
         <LayersControl position="topright">
+          <BaseLayer name="Topo Maps">
+            <TileLayer url="https://basemaps.linz.govt.nz/v1/tiles/topo-raster-gridded/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01kmpdda6jzktbg56tppczpak5"></TileLayer>
+          </BaseLayer>
+          <BaseLayer name="Aerial Imagery">
+            <TileLayer url="https://basemaps.linz.govt.nz/v1/tiles/aerial/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01kmpdda6jzktbg56tppczpak5"></TileLayer>
+          </BaseLayer>
           <BaseLayer checked name="CARTO Light">
             <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
           </BaseLayer>
           <BaseLayer name="Esri Satellite">
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              attribution="Tiles © Esri"
-            />
+            <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
           </BaseLayer>
         </LayersControl>
         <ZoomControl position="topright" />

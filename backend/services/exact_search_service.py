@@ -1,17 +1,12 @@
-from fastapi import Depends
+from sqlalchemy.orm import Session
 
-from main import get_db
 from repositories.campsite_repository import select_map_items_campsite
 from repositories.hut_repository import select_map_items_hut
 from repositories.track_repository import select_map_items_track
 from repositories.weather_station_repository import select_map_items_weather_station
-from schema import TrackSearchRequest
 
 
-def search_map_items(
-    filters: TrackSearchRequest,
-    db: Session = Depends(get_db),
-):
+def exact_search_tracks(db: Session, filters):
     items = []
 
     if filters.show_tracks:

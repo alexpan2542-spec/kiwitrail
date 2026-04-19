@@ -1,0 +1,887 @@
+[
+  {
+    "name": "Akaroa Ews",
+    "value": "0: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858492/3/white"
+  },
+  {
+    "name": "Ākitio",
+    "value": "1: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910367/3/white"
+  },
+  {
+    "name": "Albert Burn",
+    "value": "2: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910368/3/white"
+  },
+  {
+    "name": "Alexandra",
+    "value": "3: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910370/3/white"
+  },
+  {
+    "name": "Aoraki Mount Cook",
+    "value": "4: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910583/3/white"
+  },
+  {
+    "name": "Appleby",
+    "value": "5: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910372/3/white"
+  },
+  {
+    "name": "Arapito",
+    "value": "6: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910373/3/white"
+  },
+  {
+    "name": "Arrowsmith Range",
+    "value": "7: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858516/3/white"
+  },
+  {
+    "name": "Arthurs Pass",
+    "value": "8: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910375/3/white"
+  },
+  {
+    "name": "Auckland",
+    "value": "9: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675319/3/white"
+  },
+  {
+    "name": "Auckland (Airport)",
+    "value": "10: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910380/3/white"
+  },
+  {
+    "name": "Auckland (Māngere)",
+    "value": "11: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/634959177/3/white"
+  },
+  {
+    "name": "Auckland (Nth Shore)",
+    "value": "12: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858493/3/white"
+  },
+  {
+    "name": "Awakino",
+    "value": "13: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910383/3/white"
+  },
+  {
+    "name": "Balclutha",
+    "value": "14: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910385/3/white"
+  },
+  {
+    "name": "Baring Head",
+    "value": "15: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/113776245/3/white"
+  },
+  {
+    "name": "Blenheim",
+    "value": "16: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910399/3/white"
+  },
+  {
+    "name": "Brothers Island",
+    "value": "17: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858444/3/white"
+  },
+  {
+    "name": "Cape Campbell",
+    "value": "18: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858446/3/white"
+  },
+  {
+    "name": "Cape Reinga",
+    "value": "19: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858447/3/white"
+  },
+  {
+    "name": "Castle Mount",
+    "value": "20: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/1259275826/3/white"
+  },
+  {
+    "name": "Castlepoint",
+    "value": "21: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858448/3/white"
+  },
+  {
+    "name": "Chatham Islands",
+    "value": "22: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858449/3/white"
+  },
+  {
+    "name": "Chertsey",
+    "value": "23: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858494/3/white"
+  },
+  {
+    "name": "Cheviot",
+    "value": "24: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910428/3/white"
+  },
+  {
+    "name": "Christchurch",
+    "value": "25: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910430/3/white"
+  },
+  {
+    "name": "Christchurch (Airport)",
+    "value": "26: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858450/3/white"
+  },
+  {
+    "name": "Clyde",
+    "value": "27: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/44514131/3/white"
+  },
+  {
+    "name": "Crail Bay",
+    "value": "28: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910637/3/white"
+  },
+  {
+    "name": "Cromwell",
+    "value": "29: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910437/3/white"
+  },
+  {
+    "name": "Dannevirke",
+    "value": "30: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910442/3/white"
+  },
+  {
+    "name": "Darfield",
+    "value": "31: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910445/3/white"
+  },
+  {
+    "name": "Dargaville",
+    "value": "32: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910446/3/white"
+  },
+  {
+    "name": "Diamond Harbour",
+    "value": "33: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675251/3/white"
+  },
+  {
+    "name": "Dunedin",
+    "value": "34: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910454/3/white"
+  },
+  {
+    "name": "Dunedin (Airport)",
+    "value": "35: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858451/3/white"
+  },
+  {
+    "name": "Eglinton Flats",
+    "value": "36: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858495/3/white"
+  },
+  {
+    "name": "Farewell Spit",
+    "value": "37: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858453/3/white"
+  },
+  {
+    "name": "Franz Josef",
+    "value": "38: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910466/3/white"
+  },
+  {
+    "name": "Gisborne",
+    "value": "39: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910471/3/white"
+  },
+  {
+    "name": "Greymouth",
+    "value": "40: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910483/3/white"
+  },
+  {
+    "name": "Haast",
+    "value": "41: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858455/3/white"
+  },
+  {
+    "name": "Hakataramea Valley",
+    "value": "42: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858496/3/white"
+  },
+  {
+    "name": "Hamilton",
+    "value": "43: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910667/3/white"
+  },
+  {
+    "name": "Hamilton (Airport)",
+    "value": "44: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858456/3/white"
+  },
+  {
+    "name": "Hanmer Forest",
+    "value": "45: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910489/3/white"
+  },
+  {
+    "name": "Hastings",
+    "value": "46: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910777/3/white"
+  },
+  {
+    "name": "Hāwera",
+    "value": "47: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858457/3/white"
+  },
+  {
+    "name": "Hicks Bay",
+    "value": "48: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858458/3/white"
+  },
+  {
+    "name": "Hokitika",
+    "value": "49: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675279/3/white"
+  },
+  {
+    "name": "Invercargill",
+    "value": "50: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910510/3/white"
+  },
+  {
+    "name": "Ivory Glacier",
+    "value": "51: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858497/3/white"
+  },
+  {
+    "name": "Kaikohe",
+    "value": "52: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858461/3/white"
+  },
+  {
+    "name": "Kaikōura",
+    "value": "53: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/221149754/3/white"
+  },
+  {
+    "name": "Kaikōura Peninsula",
+    "value": "54: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858462/3/white"
+  },
+  {
+    "name": "Kaitaia",
+    "value": "55: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910519/3/white"
+  },
+  {
+    "name": "Kaitaia (Airport)",
+    "value": "56: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910518/3/white"
+  },
+  {
+    "name": "Karapiro",
+    "value": "57: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910535/3/white"
+  },
+  {
+    "name": "Kerikeri",
+    "value": "58: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910532/3/white"
+  },
+  {
+    "name": "Kumeū",
+    "value": "59: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/44514134/3/white"
+  },
+  {
+    "name": "Lake Brunner",
+    "value": "60: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858510/3/white"
+  },
+  {
+    "name": "Lake Manapouri",
+    "value": "61: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910554/3/white"
+  },
+  {
+    "name": "Lake Moeraki",
+    "value": "62: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910536/3/white"
+  },
+  {
+    "name": "Lake Orbell",
+    "value": "63: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858513/3/white"
+  },
+  {
+    "name": "Lake Tekapo",
+    "value": "64: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910538/3/white"
+  },
+  {
+    "name": "Lauder",
+    "value": "65: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910539/3/white"
+  },
+  {
+    "name": "Le Bons Bay",
+    "value": "66: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858463/3/white"
+  },
+  {
+    "name": "Leigh",
+    "value": "67: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910543/3/white"
+  },
+  {
+    "name": "Levin",
+    "value": "68: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/467088945/3/white"
+  },
+  {
+    "name": "Lincoln",
+    "value": "69: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910546/3/white"
+  },
+  {
+    "name": "Lismore",
+    "value": "70: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858499/3/white"
+  },
+  {
+    "name": "Lowther",
+    "value": "71: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675246/3/white"
+  },
+  {
+    "name": "Lumsden",
+    "value": "72: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858465/3/white"
+  },
+  {
+    "name": "Māhia Peninsula",
+    "value": "73: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858466/3/white"
+  },
+  {
+    "name": "Manaia",
+    "value": "74: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/649156448/3/white"
+  },
+  {
+    "name": "Martinborough",
+    "value": "75: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910560/3/white"
+  },
+  {
+    "name": "Masterton",
+    "value": "76: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675272/3/white"
+  },
+  {
+    "name": "Matamata",
+    "value": "77: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910563/3/white"
+  },
+  {
+    "name": "Maungatapere",
+    "value": "78: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/44514133/3/white"
+  },
+  {
+    "name": "Mayfield",
+    "value": "79: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/589905174/3/white"
+  },
+  {
+    "name": "Medbury",
+    "value": "80: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675278/3/white"
+  },
+  {
+    "name": "Methven",
+    "value": "81: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858503/3/white"
+  },
+  {
+    "name": "Middlemarch",
+    "value": "82: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910567/3/white"
+  },
+  {
+    "name": "Milford Sound",
+    "value": "83: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675300/3/white"
+  },
+  {
+    "name": "Mokohinau",
+    "value": "84: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858467/3/white"
+  },
+  {
+    "name": "Mōtū",
+    "value": "85: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910578/3/white"
+  },
+  {
+    "name": "Motueka",
+    "value": "86: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910580/3/white"
+  },
+  {
+    "name": "Mount Larkins",
+    "value": "87: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/1259275824/3/white"
+  },
+  {
+    "name": "Mount Philistine",
+    "value": "88: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858505/3/white"
+  },
+  {
+    "name": "Mount Potts",
+    "value": "89: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858506/3/white"
+  },
+  {
+    "name": "Mount Ruapehu - Chateau",
+    "value": "90: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910585/3/white"
+  },
+  {
+    "name": "Mueller Hut",
+    "value": "91: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858507/3/white"
+  },
+  {
+    "name": "Murchison Mtns",
+    "value": "92: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858508/3/white"
+  },
+  {
+    "name": "Napier",
+    "value": "93: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/695808279/3/white"
+  },
+  {
+    "name": "Napier (Airport)",
+    "value": "94: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858468/3/white"
+  },
+  {
+    "name": "Nelson",
+    "value": "95: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858469/3/white"
+  },
+  {
+    "name": "Nelson Lakes",
+    "value": "96: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858501/3/white"
+  },
+  {
+    "name": "New Plymouth",
+    "value": "97: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858470/3/white"
+  },
+  {
+    "name": "Ngawi",
+    "value": "98: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858471/3/white"
+  },
+  {
+    "name": "Nugget Point",
+    "value": "99: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858472/3/white"
+  },
+  {
+    "name": "Ōamaru",
+    "value": "100: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675259/3/white"
+  },
+  {
+    "name": "Ohakune",
+    "value": "101: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910613/3/white"
+  },
+  {
+    "name": "Ohoka",
+    "value": "102: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/666358550/3/white"
+  },
+  {
+    "name": "Ōkārito",
+    "value": "103: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910614/3/white"
+  },
+  {
+    "name": "Ōmarama",
+    "value": "104: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858482/3/white"
+  },
+  {
+    "name": "Ōpōtiki",
+    "value": "105: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910619/3/white"
+  },
+  {
+    "name": "Orari Estate Ews",
+    "value": "106: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910623/3/white"
+  },
+  {
+    "name": "Otamatuna, Te Mapou Hut Cws",
+    "value": "107: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858509/3/white"
+  },
+  {
+    "name": "Paengaroa",
+    "value": "108: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910627/3/white"
+  },
+  {
+    "name": "Paeroa",
+    "value": "109: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858473/3/white"
+  },
+  {
+    "name": "Pahiatua",
+    "value": "110: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910629/3/white"
+  },
+  {
+    "name": "Palmerston North",
+    "value": "111: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910633/3/white"
+  },
+  {
+    "name": "Palmerston Nth (Airport)",
+    "value": "112: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858474/3/white"
+  },
+  {
+    "name": "Papahaua",
+    "value": "113: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/77786937/3/white"
+  },
+  {
+    "name": "Paraparaumu",
+    "value": "114: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910635/3/white"
+  },
+  {
+    "name": "Pipiroa",
+    "value": "115: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/46511096/3/white"
+  },
+  {
+    "name": "Pukekohe",
+    "value": "116: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910646/3/white"
+  },
+  {
+    "name": "Pureora Forest",
+    "value": "117: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858511/3/white"
+  },
+  {
+    "name": "Purerua Peninsula",
+    "value": "118: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858476/3/white"
+  },
+  {
+    "name": "Puysegur Point",
+    "value": "119: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858477/3/white"
+  },
+  {
+    "name": "Queenstown",
+    "value": "120: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675343/3/white"
+  },
+  {
+    "name": "Queenstown (Airport)",
+    "value": "121: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858478/3/white"
+  },
+  {
+    "name": "Ranfurly",
+    "value": "122: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910653/3/white"
+  },
+  {
+    "name": "Rangiora",
+    "value": "123: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910654/3/white"
+  },
+  {
+    "name": "Reefton",
+    "value": "124: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910659/3/white"
+  },
+  {
+    "name": "Retaruke",
+    "value": "125: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858500/3/white"
+  },
+  {
+    "name": "Richmond",
+    "value": "126: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/221149758/3/white"
+  },
+  {
+    "name": "Rotorua",
+    "value": "127: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675261/3/white"
+  },
+  {
+    "name": "Secretary Island",
+    "value": "128: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858480/3/white"
+  },
+  {
+    "name": "South West Cape",
+    "value": "129: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858481/3/white"
+  },
+  {
+    "name": "Stephens Is",
+    "value": "130: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910676/3/white"
+  },
+  {
+    "name": "Stratford",
+    "value": "131: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910682/3/white"
+  },
+  {
+    "name": "Tākaka",
+    "value": "132: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910692/3/white"
+  },
+  {
+    "name": "Tarapounamu",
+    "value": "133: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910698/3/white"
+  },
+  {
+    "name": "Taumarunui",
+    "value": "134: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675262/3/white"
+  },
+  {
+    "name": "Taupō",
+    "value": "135: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858483/3/white"
+  },
+  {
+    "name": "Tauranga",
+    "value": "136: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858484/3/white"
+  },
+  {
+    "name": "Te Anau",
+    "value": "137: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/221149756/3/white"
+  },
+  {
+    "name": "Te Kuiti",
+    "value": "138: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910708/3/white"
+  },
+  {
+    "name": "Te Pa",
+    "value": "139: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/77786936/3/white"
+  },
+  {
+    "name": "Te Puke",
+    "value": "140: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910710/3/white"
+  },
+  {
+    "name": "Te Puna",
+    "value": "141: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/44514136/3/white"
+  },
+  {
+    "name": "Te Teko",
+    "value": "142: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/44514137/3/white"
+  },
+  {
+    "name": "Timaru",
+    "value": "143: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910716/3/white"
+  },
+  {
+    "name": "Timaru (Airport)",
+    "value": "144: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858485/3/white"
+  },
+  {
+    "name": "Tiwai Point",
+    "value": "145: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910720/3/white"
+  },
+  {
+    "name": "Trounson Kauri Park",
+    "value": "146: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858514/3/white"
+  },
+  {
+    "name": "Tūrangi",
+    "value": "147: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910727/3/white"
+  },
+  {
+    "name": "Tutira",
+    "value": "148: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858515/3/white"
+  },
+  {
+    "name": "Upper Hutt",
+    "value": "149: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/150423400/3/white"
+  },
+  {
+    "name": "Waiau",
+    "value": "150: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858517/3/white"
+  },
+  {
+    "name": "Waikeria",
+    "value": "151: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/808070017/3/white"
+  },
+  {
+    "name": "Waimate",
+    "value": "152: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858518/3/white"
+  },
+  {
+    "name": "Waiouru",
+    "value": "153: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675280/3/white"
+  },
+  {
+    "name": "Waipara",
+    "value": "154: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910743/3/white"
+  },
+  {
+    "name": "Waipara River",
+    "value": "155: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858519/3/white"
+  },
+  {
+    "name": "Waipawa",
+    "value": "156: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910744/3/white"
+  },
+  {
+    "name": "Wairau Valley",
+    "value": "157: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858520/3/white"
+  },
+  {
+    "name": "Wairoa",
+    "value": "158: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910747/3/white"
+  },
+  {
+    "name": "Waitutu River",
+    "value": "159: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858521/3/white"
+  },
+  {
+    "name": "Wānaka",
+    "value": "160: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675277/3/white"
+  },
+  {
+    "name": "Warkworth",
+    "value": "161: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910761/3/white"
+  },
+  {
+    "name": "Wellington",
+    "value": "162: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675266/3/white"
+  },
+  {
+    "name": "Wellington (Airport)",
+    "value": "163: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858487/3/white"
+  },
+  {
+    "name": "West Eyreton",
+    "value": "164: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910769/3/white"
+  },
+  {
+    "name": "Westport",
+    "value": "165: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/229675371/3/white"
+  },
+  {
+    "name": "Westport (Airport)",
+    "value": "166: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858488/3/white"
+  },
+  {
+    "name": "Whakamārama",
+    "value": "167: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910525/3/white"
+  },
+  {
+    "name": "Whakatāne",
+    "value": "168: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/315198180/3/white"
+  },
+  {
+    "name": "Whanganui",
+    "value": "169: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910760/3/white"
+  },
+  {
+    "name": "Whangaparāoa",
+    "value": "170: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/55858489/3/white"
+  },
+  {
+    "name": "Whangārei",
+    "value": "171: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/221149757/3/white"
+  },
+  {
+    "name": "Whatawhata",
+    "value": "172: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910783/3/white"
+  },
+  {
+    "name": "Whenuakite",
+    "value": "173: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/44514135/3/white"
+  },
+  {
+    "name": "Whitianga",
+    "value": "174: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/221149755/3/white"
+  },
+  {
+    "name": "Winchmore",
+    "value": "175: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/431337275/3/white"
+  },
+  {
+    "name": "Windsor",
+    "value": "176: Object",
+    "widget_url": "https://widgets.niwa.co.nz/summaries/nz/42910789/3/white"
+  }
+]

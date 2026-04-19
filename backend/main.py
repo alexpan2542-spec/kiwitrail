@@ -1,18 +1,15 @@
-import asyncio
-
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from db import SessionLocal
-from model import KiwiHut
-from repositories.campsite_repository import select_map_items_campsite
-from repositories.hut_repository import select_map_items_hut
-from repositories.track_repository import select_tracks, select_map_items_track
+from repositories.region_repository import select_missing_coverage_geojson, select_dem_tif_polygons_geojson
+from repositories.track_repository import select_track_by_id, select_track_routes_by_track_id
 from schema import TrackSearchRequest
+from services.exact_search_service import exact_search_tracks
+from services.fuzzy_search_service import fuzzy_search_tracks
 
 app = FastAPI()
 
@@ -48,6 +45,19 @@ async def root():
 async def say_hello(name: str):
     return {"message": f"Hello {name}"}
 
+@app.get("/map")
+async def map(db: Session = Depends(get_db)):
+    # return select_missing_coverage_geojson(db)
+    return select_dem_tif_polygons_geojson(db)
+
+
+@app.get("/track-routes/{track_id}")
+async def get_track_details(track_id: int, db: Session = Depends(get_db)):
+    return select_track_routes_by_track_id(db, track_id)
+
+@app.get("/track-info/{track_id}")
+async def get_track_details(track_id: int, db: Session = Depends(get_db)):
+    return select_track_by_id(db, track_id)
 
 @app.get("/regions/{region_code}")
 def get_region(region_code: str):
@@ -77,43 +87,19 @@ def get_region(region_code: str):
 
     return geojson
 
-@app.post("/tracks/search")
-async def search_tracks(
-    filters: TrackSearchRequest,
-    db: Session = Depends(get_db),
-):
-    print(f"{filters.difficulty}, {filters.selected_area},")
-
-    result = select_tracks(db, filters)
-
-    await asyncio.sleep(1)
-    return result
-
 @app.post("/search/map")
 def search_map_items(
     filters: TrackSearchRequest,
     db: Session = Depends(get_db),
 ):
-    showTrack = filters.show_tracks
-    print(f"{showTrack}")
-    showHut = filters.show_huts
-    print(f"{showHut}")
-    showCampsite = filters.show_campsites
-    print(f"{showCampsite}")
-
     items = []
+    fuzzy_search = filters.fuzzy_search
+    print(f"fuzzySearch={fuzzy_search}, ,")
 
-    if filters.show_tracks:
-        tracks = select_map_items_track(db, filters)
-        items.extend(tracks)
-
-    if filters.show_huts:
-        huts = select_map_items_hut(db, filters)
-        items.extend(huts)
-
-    if filters.show_campsites:
-        campsites = select_map_items_campsite(db, filters)
-        items.extend(campsites)
+    if filters.fuzzy_search and filters.fuzzy_search.strip():
+        items.extend(fuzzy_search_tracks(db, filters, 1, 70))
+    else:
+        items.extend(exact_search_tracks(db, filters))
 
     return {
         "count": len(items),

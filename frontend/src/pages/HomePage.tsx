@@ -198,7 +198,7 @@ export default function HomePage2() {
     setSelectedItem(null);
 
     try {
-      const response = await fetch("${backendUrl}/search/map", {
+      const response = await fetch(`${backendUrl}/search/map`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

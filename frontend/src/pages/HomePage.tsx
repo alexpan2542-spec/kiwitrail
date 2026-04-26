@@ -3,7 +3,6 @@ import {
   MapContainer,
   TileLayer,
   Marker,
-  Popup,
   GeoJSON,
   useMap,
   ZoomControl,

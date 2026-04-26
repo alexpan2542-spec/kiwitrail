@@ -134,7 +134,6 @@ export default function HomePage2() {
   const MAIN_PANEL_LEFT = 16;
   const PANEL_GAP = 16;
   const DETAIL_PANEL_WIDTH = 300;
-  const WEATHER_PANEL_WIDTH = 280;
 
   const [items, setItems] = useState<MapItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<MapItem | null>(null);

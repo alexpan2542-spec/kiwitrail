@@ -16,10 +16,9 @@ from services.fuzzy_search_service import fuzzy_search_tracks
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
+load_dotenv()
+
+origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,8 +27,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-load_dotenv()
 
 #DATABASE_URL = "postgresql+psycopg2://alex@localhost:5432/postgres"
 DATABASE_URL = os.getenv("DATABASE_URL")

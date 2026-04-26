@@ -1,22 +1,19 @@
 import os
 
-from dotenv import load_dotenv
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from db import SessionLocal
-from repositories.region_repository import select_missing_coverage_geojson, select_dem_tif_polygons_geojson
+from db import engine, get_db
+from repositories.region_repository import select_dem_tif_polygons_geojson
 from repositories.track_repository import select_track_by_id, select_track_routes_by_track_id
 from schema import TrackSearchRequest
 from services.exact_search_service import exact_search_tracks
 from services.fuzzy_search_service import fuzzy_search_tracks
 
 app = FastAPI()
-
-load_dotenv()
 
 origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
 
@@ -27,17 +24,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-#DATABASE_URL = "postgresql+psycopg2://alex@localhost:5432/postgres"
-DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @app.get("/")
 async def root():

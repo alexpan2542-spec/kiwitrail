@@ -387,7 +387,7 @@ export default function TrackLinesMapPage() {
                 <XAxis
                   dataKey="point"
                   tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => value * 10}
+                  tickFormatter={(value) => `${Number(value) * 10}`}
                   label={{
                     value: "Distance (m)",
                     position: "insideBottom",
@@ -404,7 +404,10 @@ export default function TrackLinesMapPage() {
                 />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip
-                  formatter={(value: number) => [`${value} m`, "Elevation"]}
+                  formatter={(value) => [
+                    `${Number(value ?? 0)} m`,
+                    "Elevation",
+                  ]}
                   labelFormatter={(label) => `Distance ${label * 10} m`}
                 />
                 <Line

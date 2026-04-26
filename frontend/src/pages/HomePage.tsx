@@ -15,6 +15,8 @@ import { useEffect, useRef, useState } from "react";
 import type { GeoJsonObject } from "geojson";
 import L from "leaflet";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const { BaseLayer } = LayersControl;
 
 const createTrackIcon = (spriteId: string) =>
@@ -177,9 +179,7 @@ export default function HomePage2() {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:8000/regions/${regionCode}`,
-      );
+      const response = await fetch(`${backendUrl}/regions/${regionCode}`);
       if (!response.ok) {
         throw new Error("Failed to fetch region polygon");
       }
@@ -200,7 +200,7 @@ export default function HomePage2() {
     setSelectedItem(null);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/search/map", {
+      const response = await fetch("${backendUrl}/search/map", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

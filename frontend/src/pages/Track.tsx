@@ -30,6 +30,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 type TrackRoute = {
   id: number;
   name: string;
@@ -122,8 +124,8 @@ export default function TrackLinesMapPage() {
         setHoveredRouteKey(null);
 
         const [linesResponse, infoResponse] = await Promise.all([
-          fetch(`http://127.0.0.1:8000/track-routes/${trackId}`),
-          fetch(`http://127.0.0.1:8000/track-info/${trackId}`),
+          fetch(`${backendUrl}/track-routes/${trackId}`),
+          fetch(`${backendUrl}/track-info/${trackId}`),
         ]);
 
         if (!linesResponse.ok) {

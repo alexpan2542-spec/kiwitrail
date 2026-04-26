@@ -598,7 +598,7 @@ export default function HomePage2() {
                       className="form-check-label"
                       htmlFor="weather_station"
                     >
-                      Weahter Station
+                      Weather Station
                     </label>
                   </div>
                   <div className="mb-3">
@@ -719,6 +719,17 @@ export default function HomePage2() {
                   className="text-blue-600 text-decoration-underline mt-2 d-block"
                 >
                   Track Details →
+                </a>
+              )}
+              {(selectedItem.type == "hut" ||
+                selectedItem.type == "campsite") && (
+                <a
+                  href={selectedItem.source_page_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-600 text-decoration-underline mt-2 d-block"
+                >
+                  View Official Details →
                 </a>
               )}
             </div>

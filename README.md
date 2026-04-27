@@ -1,12 +1,14 @@
 # KiwiTrail
 
-KiwiTrail is a full-stack web app for discovering outdoor destinations in New Zealand, including tracks, huts, and campsites from NZ DOC data.
+**Full-stack geospatial web application built with React, FastAPI, PostGIS, Docker, and cloud deployment.**
 
-Users can search destinations by region, view trail route information, check elevation profiles calculated from NZ 8m DEM data, open weather forecasts via MetService, and navigate to destinations with Google Maps.
+KiwiTrail helps users discover outdoor destinations across New Zealand, including tracks, huts, and campsites sourced from NZ DOC open data.
+
+Users can search destinations by region, explore trail information, view elevation profiles calculated from NZ 8m DEM data, check weather forecasts via MetService, and navigate to destinations using Google Maps.
 
 ## Live Demo
 
-[Vercel Demo](https://kiwitrail.vercel.app/)
+🚀 [Visit KiwiTrail](https://kiwitrail.vercel.app/)
 
 ## Screenshots
 
@@ -19,45 +21,59 @@ Users can search destinations by region, view trail route information, check ele
 ### Trail Detail with Elevation
 ![Trail Detail](./assets/route-elevation.png)
 
+---
 
 ## Key Features
 
-- Search DOC tracks, huts, and campsites by region
-- View outdoor destination details
-- Display trail elevation profiles calculated from NZ 8m DEM data
-- Link to MetService weather forecasts
-- Open Google Maps navigation for each destination
-- Responsive React frontend
+- Search NZ DOC tracks, huts, and campsites by region
+- View outdoor destination details and route information
+- Interactive trail elevation profiles generated from NZ 8m DEM data
+- Direct links to MetService weather forecasts
+- Google Maps navigation integration
+- Responsive design for desktop and mobile devices
+
+---
 
 ## Tech Stack
 
 ### Frontend
 - React
-- Vercel
+- JavaScript / TypeScript
+- CSS
+- Deployed on Vercel
 
 ### Backend
 - FastAPI
+- Python
+- REST API
+- Docker
+- Hosted on DigitalOcean Droplet
+
+### Database
 - PostgreSQL
 - PostGIS
 
-### Data & Geospatial Processing
-- NZ DOC tracks, huts, and campsites open data
-- NZ 8m DEM data
-- Elevation extraction for trail routes
-- Geospatial storage and querying with PostGIS
+### Data Engineering & Geospatial Processing
+- NZ DOC open datasets (tracks, huts, campsites)
+- NZ 8m DEM elevation data
+- Local data cleaning, transformation, and schema design
+- Custom ETL pipeline into PostgreSQL/PostGIS
+- Spatial queries and route processing
+- Elevation extraction for trail profiles
 
-## Project Highlights
+---
 
-- Built a full-stack geospatial web application using React, FastAPI, PostgreSQL, and PostGIS
-- Processed real-world DOC open datasets for tracks, huts, and campsites
-- Used NZ 8m DEM data to calculate elevation along trail routes
-- Designed region-based search for outdoor destinations
-- Integrated external services for weather forecasts and navigation
+## Data Pipeline
 
-## What I Learned
-
-- Building APIs with FastAPI
-- Managing geospatial data with PostGIS
-- Processing DEM raster data for elevation analysis
-- Connecting frontend search UI with backend geospatial queries
-- Deploying a full-stack application
+```text
+Public NZ Datasets
+(DOC + DEM + geospatial sources)
+        ↓
+Local Download & Processing
+(cleaning / formatting / transformation)
+        ↓
+PostgreSQL + PostGIS Database
+        ↓
+FastAPI Backend
+        ↓
+React Frontend

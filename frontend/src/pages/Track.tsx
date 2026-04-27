@@ -98,7 +98,7 @@ function FitBoundsToTrack({ geojson }: { geojson: GeoJsonObject | null }) {
 
     if (bounds.isValid()) {
       map.fitBounds(bounds, {
-        padding: [24, 24],
+        padding: [256, 256],
       });
     }
   }, [geojson, map]);
@@ -404,6 +404,18 @@ export default function TrackLinesMapPage() {
                 />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #ddd",
+                    borderRadius: "8px",
+                  }}
+                  labelStyle={{
+                    color: "#111",
+                    fontWeight: 700,
+                  }}
+                  itemStyle={{
+                    color: "#222",
+                  }}
                   formatter={(value) => [
                     `${Number(value ?? 0)} m`,
                     "Elevation",

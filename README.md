@@ -6,7 +6,19 @@ Users can search destinations by region, view trail route information, check ele
 
 ## Live Demo
 
-[Vercel Demo](your-vercel-link)
+[Vercel Demo](https://kiwitrail.vercel.app/)
+
+## Screenshots
+
+### Home Page
+![Home Page](./assets/homepage.png)
+
+### Search by Region
+![Search](./assets/search.png)
+
+### Trail Detail with Elevation
+![Trail Detail](./assets/route-elevation.png)
+
 
 ## Key Features
 

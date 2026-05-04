@@ -43,9 +43,7 @@ def select_dem_tif_polygons_geojson(db: Session):
             ) AS feature
             FROM kiwi_nz_8m_dem
             WHERE geom IS NOT NULL
-                and file_name in ('92L8Z-92L35.tif', 
-                                  '92L90-92L35.tif', 
-                                  '92L91-92L35.tif', '92L92-92L35.tif', '92L93-92L35.tif')
+               
             ORDER BY id
         ) t
     """)

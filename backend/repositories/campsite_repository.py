@@ -39,6 +39,7 @@ def select_map_items_campsite(db: Session, filters):
             ST_X(ST_PointOnSurface(geom)) AS lng,
             source_page_url,
             thumbnail_url AS thumbnail_url,
+            niwa_weather_url as weather_url,
             CASE
                 WHEN bookable = TRUE THEN 'Yes'
                 WHEN bookable = FALSE THEN 'No'
@@ -65,6 +66,7 @@ def select_map_items_campsite(db: Session, filters):
             "thumbnail_url": row["thumbnail_url"],
             "source_page_url": row["source_page_url"],
             "bookable": row["bookable_text"],
+            "weather_url": row["weather_url"],
         }
         for row in rows
     ]

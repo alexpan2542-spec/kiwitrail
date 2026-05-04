@@ -1,15 +1,18 @@
 import os
+import uuid
 
 from fastapi import Depends
 from fastapi import FastAPI
+from fastapi import UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from starlette.staticfiles import StaticFiles
 
 from db import engine, get_db
 from repositories.region_repository import select_dem_tif_polygons_geojson
 from repositories.track_repository import select_track_by_id, select_track_routes_by_track_id
-from schema import TrackSearchRequest
+from schema import TrackSearchRequest, CommentSchema
 from services.exact_search_service import exact_search_tracks
 from services.fuzzy_search_service import fuzzy_search_tracks
 
@@ -25,10 +28,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+UPLOAD_DIR = os.getenv("COMMENT_UPLOAD_DIR", "uploads/comments")
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=UPLOAD_DIR), name="static")
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
-
 
 @app.get("/hello/{name}")
 async def say_hello(name: str):
@@ -95,3 +102,46 @@ def search_map_items(
         "items": items,
     }
 
+from repositories.comment_repository import select_comments_by_item, insert_user_comment
+# (Assume you have a Pydantic schema for the POST request)
+
+@app.get("/comments/{item_type}/{item_id}")
+async def get_comments(item_type: str, item_id: int, db: Session = Depends(get_db)):
+    comments = select_comments_by_item(db, item_type, item_id)
+    return {
+        "item_type": item_type,
+        "item_id": item_id,
+        "count": len(comments),
+        "items": comments
+    }
+
+@app.post("/comments/add")
+async def add_comment(comment_data: CommentSchema, db: Session = Depends(get_db)):
+    new_entry = insert_user_comment(
+        db,
+        comment_data.item_type,
+        comment_data.item_id,
+        comment_data.user_name,
+        comment_data.rating,
+        comment_data.comment_text,
+        comment_data.image_url_1,
+        comment_data.image_url_2,
+        comment_data.image_url_3
+    )
+    return {"status": "success", "id": new_entry[0]}
+
+@app.post("/upload-image")
+async def upload_image(file: UploadFile = File(...)):
+    raw = (file.filename or "").strip() or "upload"
+    if "." in raw:
+        ext = raw.rsplit(".", 1)[-1].lower()
+        file_extension = ext if ext.isalnum() else "bin"
+    else:
+        file_extension = "bin"
+    file_name = f"{uuid.uuid4()}.{file_extension}"
+    file_path = os.path.join(UPLOAD_DIR, file_name)
+
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
+
+    return {"url": f"/static/{file_name}"}

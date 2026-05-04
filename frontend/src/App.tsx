@@ -8,7 +8,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/my-map" element={<MyMap />} />
+        <Route path="/map" element={<MyMap />} />
         <Route path="/track/:trackId" element={<Track />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/track/:id" element={<TrackDetailPage />} />

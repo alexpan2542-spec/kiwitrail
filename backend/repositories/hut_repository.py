@@ -37,7 +37,8 @@ def select_map_items_hut(db: Session, filters):
             ST_Y(geom) AS lat,
             ST_X(geom) AS lng,
             source_page_url,
-            thumbnail_url AS thumbnail_url
+            thumbnail_url AS thumbnail_url,
+            niwa_weather_url as weather_url
         FROM kiwi_huts
         {where_sql}
         ORDER BY id ASC
@@ -58,6 +59,7 @@ def select_map_items_hut(db: Session, filters):
             "thumbnail_url": row["thumbnail_url"],
             "source_page_url": row["source_page_url"],
             "bookable": row["bookable"],
+            "weather_url": row["weather_url"],
         }
         for row in rows
     ]

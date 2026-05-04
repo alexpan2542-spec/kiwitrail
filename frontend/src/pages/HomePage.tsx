@@ -9,10 +9,22 @@ import {
   LayersControl,
   useMapEvents,
   Tooltip,
+  CircleMarker,
 } from "react-leaflet";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { GeoJsonObject } from "geojson";
 import L from "leaflet";
+
+import {
+  CommentsPanel,
+  HomeAccountMenu,
+  HomeLayersCollapseBridge,
+  HomeSearchPanel,
+  HomeSelectedItemPanel,
+  WeatherWidgetPanel,
+  type MapItem,
+} from "../components";
+import { HomeAuthProvider } from "../contexts/HomeAuthContext";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -68,25 +80,6 @@ const weatherStationIcon = new L.Icon({
   iconAnchor: [14, 28],
   popupAnchor: [0, -28],
 });
-
-type MapItemType = "track" | "hut" | "campsite" | "weather_station";
-
-type MapItem = {
-  id: number;
-  name: string;
-  introduction?: string;
-  type: MapItemType;
-  region?: string;
-  bookable?: string;
-  lat: number;
-  lng: number;
-  facilities?: string;
-  difficulty?: string;
-  completion_time?: string;
-  thumbnail_url?: string;
-  source_page_url?: string;
-  geom_geojson?: GeoJsonObject;
-};
 
 function FitBoundsToGeoJSON({
   data,
@@ -151,18 +144,24 @@ export default function HomePage2() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const panelRef = useRef<HTMLDivElement | null>(null);
   const detailsPanelRef = useRef<HTMLDivElement | null>(null);
-  const [panelWidth, setPanelWidth] = useState(0);
+
+  const SEARCH_PANEL_EXPANDED_W = 380;
+  const SEARCH_PANEL_COLLAPSED_W = 56;
+  const [searchPanelCollapsed, setSearchPanelCollapsed] = useState(false);
+  const searchPanelWidth = searchPanelCollapsed
+    ? SEARCH_PANEL_COLLAPSED_W
+    : SEARCH_PANEL_EXPANDED_W;
 
   const [showTracks, setShowTracks] = useState(true);
   const [showHuts, setShowHuts] = useState(true);
   const [showCampsites, setShowCampsites] = useState(true);
   const [showWeatherStation, setShowWeatherStation] = useState(false);
 
-  const [selectedWeatherWidget, setSelectedWeatherWidget] = useState<
-    any | null
-  >(null);
+  /** Weather iframe URL (station `source_page_url` or any item `weather_url`). */
+  const [weatherEmbedUrl, setWeatherEmbedUrl] = useState<string | null>(null);
+  /** Same slot as weather side panel; mutually exclusive with `weatherEmbedUrl` when open. */
+  const [commentsOpen, setCommentsOpen] = useState(false);
 
   const handleRegionChange = async (
     event: React.ChangeEvent<HTMLSelectElement>,
@@ -196,6 +195,8 @@ export default function HomePage2() {
     setRegionGeoJson(null);
     setSelectedTrack(null);
     setSelectedItem(null);
+    setSearchPanelCollapsed(false);
+    setCommentsOpen(false);
 
     try {
       const response = await fetch(`${backendUrl}/search/map`, {
@@ -222,7 +223,15 @@ export default function HomePage2() {
 
       const data = await response.json();
 
-      setItems(data.items ?? []);
+      const rawItems = (data.items ?? []) as Array<
+        MapItem & { weahter_url?: string }
+      >;
+      setItems(
+        rawItems.map(({ weahter_url, ...rest }) => ({
+          ...rest,
+          weather_url: rest.weather_url ?? weahter_url,
+        })),
+      );
     } catch (error) {
       console.error("Search error:", error);
     } finally {
@@ -246,13 +255,17 @@ export default function HomePage2() {
       setSelectedTrack(null);
       setSelectedTrackId(null);
       setSelectedItem(item);
+      setSearchPanelCollapsed(true);
+      setCommentsOpen(false);
       if (item.type === "track") {
         console.log(item.geom_geojson);
         setSelectedTrack(item.geom_geojson ?? null);
         setSelectedTrackId(item.id);
       }
-      if (item.type === "weather_station") {
-        setSelectedWeatherWidget(item);
+      if (item.type === "weather_station" && item.source_page_url) {
+        setWeatherEmbedUrl(item.source_page_url);
+      } else {
+        setWeatherEmbedUrl(null);
       }
     } catch (error) {
     } finally {
@@ -260,14 +273,39 @@ export default function HomePage2() {
   };
 
   function MapStatus() {
-    const [position, setPosition] = useState({
-      lat: 0,
-      lng: 0,
-      zoom: 0,
+    const map = useMap();
+    /** When set, readout follows cursor at this container pixel (stays correct while panning). */
+    const lastContainerPointRef = useRef<{ x: number; y: number } | null>(null);
+
+    const [position, setPosition] = useState(() => {
+      const c = map.getCenter();
+      return { lat: c.lat, lng: c.lng, zoom: map.getZoom() };
     });
 
-    const map = useMapEvents({
-      move: () => {
+    const syncFromPointerOrCenter = useCallback(() => {
+      const zoom = map.getZoom();
+      const pt = lastContainerPointRef.current;
+      if (pt) {
+        const ll = map.containerPointToLatLng(L.point(pt.x, pt.y));
+        setPosition({ lat: ll.lat, lng: ll.lng, zoom });
+      } else {
+        const c = map.getCenter();
+        setPosition({ lat: c.lat, lng: c.lng, zoom });
+      }
+    }, [map]);
+
+    useMapEvents({
+      mousemove: (e) => {
+        const c = map.mouseEventToContainerPoint(e.originalEvent);
+        lastContainerPointRef.current = { x: c.x, y: c.y };
+        setPosition({
+          lat: e.latlng.lat,
+          lng: e.latlng.lng,
+          zoom: map.getZoom(),
+        });
+      },
+      mouseout: () => {
+        lastContainerPointRef.current = null;
         const center = map.getCenter();
         setPosition({
           lat: center.lat,
@@ -275,33 +313,30 @@ export default function HomePage2() {
           zoom: map.getZoom(),
         });
       },
-      zoom: () => {
-        const center = map.getCenter();
-        setPosition({
-          lat: center.lat,
-          lng: center.lng,
-          zoom: map.getZoom(),
-        });
-      },
+      move: syncFromPointerOrCenter,
+      zoom: syncFromPointerOrCenter,
     });
 
     return (
       <div
-        style={{
-          position: "absolute",
-          bottom: 8,
-          right: 8,
-          zIndex: 1000,
-          background: "rgba(0,0,0,0.6)",
-          color: "#fff",
-          padding: "6px 10px",
-          borderRadius: "4px",
-          fontSize: "12px",
-        }}
+        className="kiwi-map-coords"
+        role="status"
+        aria-live="polite"
+        aria-label={`Latitude ${position.lat.toFixed(4)}, longitude ${position.lng.toFixed(4)}, zoom ${position.zoom}`}
       >
-        Lat: {position.lat.toFixed(5)} <br />
-        Lng: {position.lng.toFixed(5)} <br />
-        Zoom: {position.zoom}
+        <span className="kiwi-map-coords__field">
+          Lat&nbsp;{position.lat.toFixed(4)}°
+        </span>
+        <span className="kiwi-map-coords__sep" aria-hidden>
+          ·
+        </span>
+        <span className="kiwi-map-coords__field">
+          Lon&nbsp;{position.lng.toFixed(4)}°
+        </span>
+        <span className="kiwi-map-coords__sep" aria-hidden>
+          ·
+        </span>
+        <span className="kiwi-map-coords__field">z&nbsp;{position.zoom}</span>
       </div>
     );
   }
@@ -341,21 +376,20 @@ export default function HomePage2() {
     return null;
   }
 
-  useEffect(() => {
-    const updatePanelWidth = () => {
-      if (panelRef.current) {
-        setPanelWidth(panelRef.current.offsetWidth);
-      }
-    };
-
-    updatePanelWidth();
-    window.addEventListener("resize", updatePanelWidth);
-
-    return () => window.removeEventListener("resize", updatePanelWidth);
-  }, []);
+  const sidePanelLeft =
+    MAIN_PANEL_LEFT +
+    searchPanelWidth +
+    PANEL_GAP +
+    DETAIL_PANEL_WIDTH +
+    PANEL_GAP;
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
+    <HomeAuthProvider>
+    <div
+      className="kiwitrail-home position-relative"
+      style={{ width: "100vw", height: "100vh" }}
+    >
+      <HomeAccountMenu />
       <MapContainer
         center={[-41.2865, 170]}
         zoom={5}
@@ -364,6 +398,7 @@ export default function HomePage2() {
         style={{ width: "100%", height: "100%" }}
       >
         <LayersControl position="topright">
+          <HomeLayersCollapseBridge />
           <BaseLayer checked name="Topo Maps">
             <TileLayer url="https://basemaps.linz.govt.nz/v1/tiles/topo-raster-gridded/WebMercatorQuad/{z}/{x}/{y}.webp?api=c01kmpdda6jzktbg56tppczpak5"></TileLayer>
           </BaseLayer>
@@ -408,18 +443,37 @@ export default function HomePage2() {
             />
             <FitBoundsToGeoJSON
               data={regionGeoJson}
-              leftPanelWidth={panelWidth}
+              leftPanelWidth={searchPanelWidth}
             />
           </>
         )}
-
+        {/* 视觉定位圈：当有选中项时显示 */}
+        {selectedItem &&
+          (selectedItem.type === "track" ||
+            selectedItem.type === "hut" ||
+            selectedItem.type === "campsite") && (
+            <CircleMarker
+              center={[selectedItem.lat, selectedItem.lng]}
+              pathOptions={{
+                color: "#28a745",
+                fillColor: "#28a745",
+                fillOpacity: 0.4,
+                weight: 2,
+                dashArray: "5, 10",
+              }}
+              radius={40}
+              interactive={false}
+            />
+          )}
         <MapClickHandler
           onMapClick={() => {
             setSelectedItem(null);
             setSelectedTrack(null);
             setSelectedTrackId(null);
             setRegionGeoJson(null);
-            setSelectedWeatherWidget(null);
+            setWeatherEmbedUrl(null);
+            setSearchPanelCollapsed(false);
+            setCommentsOpen(false);
           }}
         />
         {items.map((item) => (
@@ -447,316 +501,67 @@ export default function HomePage2() {
           <FlyToItem
             item={selectedItem}
             zoom={10}
-            leftPanelWidth={panelWidth}
+            leftPanelWidth={searchPanelWidth}
           />
         )}
       </MapContainer>
-      <div
-        style={{
-          position: "absolute",
-          top: 16,
-          left: 16,
-          width: 380,
-          height: "calc(100vh - 32px)",
-          background: "#eee",
-          borderRadius: 0,
-          boxShadow: "0 6px 24px rgba(0,0,0,0.16)",
-          zIndex: 1000,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-        ref={panelRef}
-      >
-        <div
-          className="card h-100"
-          style={{
-            borderRadius: 0,
-            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-          }}
-        >
-          <div className="card-header fw-bold">
-            <svg
-              className="text-success me-2"
-              style={{ width: "2em", height: "2em" }}
-            >
-              <use href="/spritemap.svg#sprite-advanced-tramping-track" />
-            </svg>
-            KiwiTrail
-          </div>
-          <div
-            className="card-body"
-            style={{
-              overflowY: "auto",
-              flexGrow: 1,
-            }}
-          >
-            <form
-              onSubmit={handleSearch}
-              className="d-flex flex-column flex-grow-1 overflow-hidden"
-            >
-              <div className="flex-grow-1 overflow-auto pe-1">
-                <label htmlFor="regions" className="form-label">
-                  Choose a region for hiking
-                </label>
-                <div className="mb-3">
-                  <select
-                    id="regions"
-                    className="form-select"
-                    value={selectedRegionCode}
-                    onChange={handleRegionChange}
-                  >
-                    <option value="">All New Zealand</option>
-                    <option value="01">Northland Region</option>
-                    <option value="02">Auckland</option>
-                    <option value="03">Waikato Region</option>
-                    <option value="04">Bay of Plenty Region</option>
-                    <option value="05">Gisborne Region</option>
-                    <option value="06">Hawke's Bay Region</option>
-                    <option value="07">Taranaki Region</option>
-                    <option value="08">Manawatū-Whanganui Region</option>
-                    <option value="09">Wellington Region</option>
-                    <option value="12">West Coast Region</option>
-                    <option value="13">Canterbury Region</option>
-                    <option value="14">Otago Region</option>
-                    <option value="15">Southland Region</option>
-                    <option value="16">Tasman Region</option>
-                    <option value="17">Nelson Region</option>
-                    <option value="18">Marlborough Region</option>
-                    <option value="99">Area Outside Region</option>
-                  </select>
-                </div>
-
-                <div className="mb-3">
-                  <label htmlFor="difficulty" className="form-label">
-                    Track Difficulty
-                  </label>
-                  <select
-                    id="difficulty"
-                    className="form-select"
-                    value={selectedDifficulty}
-                    onChange={(e) => setSelectedDifficulty(e.target.value)}
-                  >
-                    <option value="">Any Difficulty</option>
-                    <option value="Easiest">Easiest</option>
-                    <option value="Easy">Easy</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                    <option value="Expert">Expert</option>
-                  </select>
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Choose what you want</label>
-                  <div className="form-check">
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      id="tracks"
-                      checked={showTracks}
-                      onChange={(e) => setShowTracks(e.target.checked)}
-                    />
-                    <label className="form-check-label" htmlFor="tracks">
-                      Tracks
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      id="huts"
-                      checked={showHuts}
-                      onChange={(e) => setShowHuts(e.target.checked)}
-                    />
-                    <label className="form-check-label" htmlFor="huts">
-                      Huts
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      id="campsites"
-                      checked={showCampsites}
-                      onChange={(e) => setShowCampsites(e.target.checked)}
-                    />
-                    <label className="form-check-label" htmlFor="campsites">
-                      Campsites
-                    </label>
-                  </div>
-                  <div className="form-check mb-3">
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      id="weather_station"
-                      checked={showWeatherStation}
-                      onChange={(e) => setShowWeatherStation(e.target.checked)}
-                    />
-                    <label
-                      className="form-check-label"
-                      htmlFor="weather_station"
-                    >
-                      Weather Station
-                    </label>
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="fuzzy_search" className="form-label">
-                      Fuzzy Search
-                    </label>
-                    <input
-                      id="fuzzy_search"
-                      type="text"
-                      className="form-control"
-                      value={fuzzySearch}
-                      onChange={(e) => setFuzzySearch(e.target.value)}
-                      placeholder="Rough Place Name"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-3 border-top flex-shrink-0">
-                <button
-                  type="submit"
-                  className="btn btn-primary w-100"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Searching..." : "Submit"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+      <HomeSearchPanel
+        width={searchPanelWidth}
+        collapsed={searchPanelCollapsed}
+        onExpandSearch={() => setSearchPanelCollapsed(false)}
+        selectedRegionCode={selectedRegionCode}
+        onRegionChange={handleRegionChange}
+        selectedDifficulty={selectedDifficulty}
+        onSelectedDifficultyChange={setSelectedDifficulty}
+        showTracks={showTracks}
+        onShowTracksChange={setShowTracks}
+        showHuts={showHuts}
+        onShowHutsChange={setShowHuts}
+        showCampsites={showCampsites}
+        onShowCampsitesChange={setShowCampsites}
+        showWeatherStation={showWeatherStation}
+        onShowWeatherStationChange={setShowWeatherStation}
+        fuzzySearch={fuzzySearch}
+        onFuzzySearchChange={setFuzzySearch}
+        isLoading={isLoading}
+        onSearchSubmit={handleSearch}
+      />
       {selectedItem && (
-        <div
-          ref={detailsPanelRef}
-          className="detail-popup"
-          style={{
-            position: "absolute",
-            top: PANEL_GAP,
-            left: MAIN_PANEL_LEFT + panelWidth + PANEL_GAP,
-            width: DETAIL_PANEL_WIDTH,
-            zIndex: 1000,
+        <HomeSelectedItemPanel
+          item={selectedItem}
+          panelRef={detailsPanelRef}
+          top={PANEL_GAP}
+          left={MAIN_PANEL_LEFT + searchPanelWidth + PANEL_GAP}
+          width={DETAIL_PANEL_WIDTH}
+          onWeatherClick={(url) => {
+            setCommentsOpen(false);
+            setWeatherEmbedUrl((prev) => (prev === url ? null : url));
           }}
-        >
-          <div className="card" data-bs-theme="light">
-            <div className="card-header d-flex justify-content-between align-items-center fw-bold">
-              <span>{selectedItem.name}</span>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-secondary"
-                onClick={() => {
-                  setSelectedItem(null);
-                  setSelectedTrack(null);
-                  setSelectedTrackId(null);
-                }}
-              >
-                Close
-              </button>
-            </div>
-
-            <div
-              className="card-body"
-              style={{
-                overflowY: "auto",
-              }}
-            >
-              {selectedItem.thumbnail_url && (
-                <img
-                  src={selectedItem.thumbnail_url}
-                  alt={`${selectedItem.type} ${selectedItem.id}`}
-                  className="card-img-top mb-3"
-                  style={{ height: "120px", objectFit: "cover" }}
-                />
-              )}
-
-              {selectedItem.introduction && (
-                <p className="card-text small">{selectedItem.introduction}</p>
-              )}
-
-              {selectedItem.difficulty && (
-                <p className="card-text small">
-                  <strong>Difficulty:</strong> {selectedItem.difficulty}
-                </p>
-              )}
-
-              {selectedItem.completion_time && (
-                <p className="card-text small">
-                  <strong>Duration:</strong> {selectedItem.completion_time}
-                </p>
-              )}
-
-              {selectedItem.region && (
-                <p className="card-text small">
-                  <strong>Region:</strong> {selectedItem.region}
-                </p>
-              )}
-
-              {selectedItem.bookable && (
-                <p className="card-text small">
-                  <strong>Bookable:</strong> {selectedItem.bookable}
-                </p>
-              )}
-
-              {selectedItem.facilities && (
-                <p className="card-text small">
-                  <strong>Facilities:</strong> {selectedItem.facilities}
-                </p>
-              )}
-
-              <p className="card-text small">
-                <strong>Type:</strong> {selectedItem.type}
-              </p>
-
-              {selectedItem.type == "track" && (
-                <a
-                  href={"track/" + selectedItem.id}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-blue-600 text-decoration-underline mt-2 d-block"
-                >
-                  Track Details →
-                </a>
-              )}
-              {(selectedItem.type == "hut" ||
-                selectedItem.type == "campsite") && (
-                <a
-                  href={selectedItem.source_page_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-blue-600 text-decoration-underline mt-2 d-block"
-                >
-                  View Official Details →
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
+          onCommentsClick={() => {
+            setCommentsOpen((prev) => {
+              if (prev) return false;
+              setWeatherEmbedUrl(null);
+              return true;
+            });
+          }}
+        />
       )}
-      {selectedWeatherWidget && (
-        <div
-          className="weather-popup"
-          style={{
-            position: "absolute",
-            top: 16,
-            left:
-              MAIN_PANEL_LEFT +
-              panelWidth +
-              PANEL_GAP +
-              DETAIL_PANEL_WIDTH +
-              PANEL_GAP,
-            width: 340,
-            zIndex: 1000,
-          }}
-        >
-          <iframe
-            width="340"
-            height="470"
-            src={selectedWeatherWidget.source_page_url}
-          ></iframe>
-        </div>
+      {weatherEmbedUrl && !commentsOpen && (
+        <WeatherWidgetPanel
+          top={16}
+          left={sidePanelLeft}
+          sourcePageUrl={weatherEmbedUrl}
+        />
+      )}
+      {commentsOpen && selectedItem && (
+        <CommentsPanel
+          top={16}
+          left={sidePanelLeft}
+          item={selectedItem}
+          backendUrl={backendUrl}
+        />
       )}
     </div>
+    </HomeAuthProvider>
   );
 }

@@ -53,6 +53,7 @@ def select_map_items_track(db: Session, filters):
             completion_time,
             thumbnail_url,
             source_page_url,   
+            niwa_weather_url as weather_url,
             JSON_BUILD_OBJECT(
                 'type', 'Feature',
                 'geometry', ST_AsGeoJSON(geom)::JSON
@@ -78,6 +79,7 @@ def select_map_items_track(db: Session, filters):
             "thumbnail_url": row["thumbnail_url"],
             "source_page_url": row["source_page_url"],
             "geom_geojson": row["geom_geojson"],
+            "weather_url": row["weather_url"],
         }
         for row in rows
     ]

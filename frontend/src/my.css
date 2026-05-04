@@ -118,6 +118,15 @@
   word-break: break-word;
 }
 
+/* Favourite on: only the heart in the circle turns red; label stays default blue. */
+.detail-popup .gmaps-action.gmaps-action--favoured .gmaps-action__circle svg {
+  color: #dc3545;
+}
+
+.detail-popup .gmaps-action.gmaps-action--favoured:hover .gmaps-action__circle {
+  background: rgba(220, 53, 69, 0.14);
+}
+
 /* Home map: controls under account (vertical); match account 右 padding — Leaflet default margin-right is 10px */
 .kiwitrail-home {
   --kiwi-home-chrome-inset: 16px;

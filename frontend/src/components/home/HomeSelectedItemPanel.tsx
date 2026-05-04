@@ -1,4 +1,5 @@
 import type { ReactNode, RefObject } from "react";
+import { useEffect, useState } from "react";
 
 import type { MapItem } from "./MapItem";
 
@@ -72,22 +73,29 @@ function GmapsStyleAction({
   ariaLabel,
   onClick,
   disabled = false,
+  favoured = false,
+  isToggle = false,
   children,
 }: {
   label: string;
   ariaLabel: string;
   onClick?: () => void;
   disabled?: boolean;
+  /** When true, icon + label use favourite (red) styling. */
+  favoured?: boolean;
+  /** When true, expose `aria-pressed` from `favoured` (favourite control). */
+  isToggle?: boolean;
   children: ReactNode;
 }) {
   return (
     <button
       type="button"
-      className="gmaps-action"
+      className={`gmaps-action${favoured ? " gmaps-action--favoured" : ""}`}
       aria-label={ariaLabel}
       title={ariaLabel}
       onClick={onClick}
       disabled={disabled}
+      aria-pressed={isToggle ? favoured : undefined}
     >
       <span className="gmaps-action__circle">{children}</span>
       <span className="gmaps-action__label">{label}</span>
@@ -130,6 +138,17 @@ export default function HomeSelectedItemPanel({
   onCommentsClick,
   onFavouriteClick,
 }: HomeSelectedItemPanelProps) {
+  const [favouriteOn, setFavouriteOn] = useState(false);
+
+  useEffect(() => {
+    setFavouriteOn(false);
+  }, [item.id, item.type]);
+
+  const handleFavouriteClick = () => {
+    setFavouriteOn((v) => !v);
+    onFavouriteClick?.();
+  };
+
   const handleDirectionsClick = () => {
     openGoogleMapsAtCoordinates(item.lat, item.lng);
     onDirectionsClick?.();
@@ -262,8 +281,12 @@ export default function HomeSelectedItemPanel({
             </GmapsStyleAction>
             <GmapsStyleAction
               label="Favourite"
-              ariaLabel="Add to favourites"
-              onClick={onFavouriteClick}
+              ariaLabel={
+                favouriteOn ? "Remove from favourites" : "Add to favourites"
+              }
+              isToggle
+              favoured={favouriteOn}
+              onClick={handleFavouriteClick}
             >
               <IconHeart />
             </GmapsStyleAction>

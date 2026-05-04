@@ -4,6 +4,7 @@ export const GOOGLE_OAUTH_CLIENT_ID =
   "408502857060-sh10gs0v6kibl8tc17nfteooemmlc3pf.apps.googleusercontent.com";
 
 const GIS_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
+const GIS_SCRIPT_SRC1 = "https://accounts.google.com/gsi/client";
 
 let gsiScriptPromise: Promise<void> | null = null;
 

@@ -13,7 +13,7 @@ def fuzzy_search_tracks(
     if not query or not query.strip():
         return []
 
-    rows= select_track_names_for_fuzzy(db=db, filters=filters)
+    rows = select_track_names_for_fuzzy(db=db, filters=filters)
     choices = {r["id"]: r["name"] for r in rows}
 
     results = process.extract(

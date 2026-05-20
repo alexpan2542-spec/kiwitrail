@@ -1,3 +1,5 @@
+import json
+
 import math
 import os
 from typing import Dict, List, Optional, Tuple
@@ -15,7 +17,7 @@ DEM_FOLDER = "/Users/alex/Downloads/lds-nz-8m-digital-elevation-model-2012-GTiff
 TARGET_EPSG = 4326
 
 ROUTE_TABLE = "kiwi_track_route"
-DEM_TABLE = "kiwi_nz_8m_dem"
+
 
 SAMPLE_STEP_M = 10
 LENGTH_EPSG = 2193  # NZTM2000
@@ -39,7 +41,7 @@ def get_routes(engine) -> List[Tuple[int, LineString]]:
         SELECT id, ST_AsBinary(geom) AS geom_wkb
         FROM {ROUTE_TABLE}
         WHERE geom IS NOT NULL
-        and length_m is null
+        
         ORDER BY id
     """)
     routes = []
@@ -60,7 +62,7 @@ def get_dem_candidates(engine, route_geom: LineString) -> List[Tuple[str, Polygo
         SELECT
             COALESCE(file_path, '') AS filepath,
             ST_AsBinary(geom) AS geom_wkb
-        FROM {DEM_TABLE}
+        FROM kiwi_nz_8m_dem
         WHERE ST_Intersects(
             geom,
             ST_GeomFromText(:wkt, :srid)
@@ -174,7 +176,7 @@ def sample_route_elevations(
             ds.close()
 
 
-def update_route(
+def update_route2(
     engine,
     route_id: int,
     length_m: Optional[int],
@@ -207,10 +209,39 @@ def update_route(
         )
 
 
+def update_route(
+        engine,
+        route_id: int,
+        length_m: Optional[int],
+        elev_min: Optional[int],
+        elev_max: Optional[int],
+        profile_simple: List[Optional[int]],
+        profile_detailed: List[dict],
+        elevation_step_m: int,
+) -> None:
+    sql = text(f"""
+        UPDATE {ROUTE_TABLE}
+        SET
+   
+            elevation_profile_2 = :elevation_profile_2,
+           
+        WHERE id = :route_id
+    """)
+
+    with engine.begin() as conn:
+        conn.execute(
+            sql,
+            {
+
+                "elevation_profile_2": json.dumps(profile_detailed),  # 序列化为 JSON 字符串
+
+            },
+        )
+
 def main() -> None:
     engine = create_engine(DATABASE_URL)
 
-    ensure_columns(engine)
+    #ensure_columns(engine)
     routes = get_routes(engine)
 
     print(f"Found {len(routes)} routes")
@@ -256,6 +287,7 @@ def main() -> None:
 
         except Exception as e:
             print(f"[{idx}/{len(routes)}] route {route_id}: ERROR: {e}")
+
 
 
 if __name__ == "__main__":

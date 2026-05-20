@@ -6,7 +6,7 @@ from repositories.track_repository import select_map_items_track
 from repositories.weather_station_repository import select_map_items_weather_station
 
 
-def search_map_items(db: Session, filters):
+def search_items(db: Session, filters):
     items = []
 
     if filters.show_tracks:

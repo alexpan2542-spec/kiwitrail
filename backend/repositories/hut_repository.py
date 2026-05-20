@@ -63,3 +63,45 @@ def select_map_items_hut(db: Session, filters):
         }
         for row in rows
     ]
+
+
+def select_map_items_hut_by_ids(db: Session, hut_ids: list[int]):
+    if not hut_ids:
+        return []
+
+    sql = text("""
+        SELECT
+            id,
+            name,
+            region,
+            facilities,
+            bookable,
+            'hut' AS type,
+            ST_Y(geom) AS lat,
+            ST_X(geom) AS lng,
+            source_page_url,
+            thumbnail_url AS thumbnail_url,
+            niwa_weather_url AS weather_url
+        FROM kiwi_huts
+        WHERE id = ANY(:hut_ids)
+    """)
+
+    rows = db.execute(sql, {"hut_ids": hut_ids}).mappings().all()
+    items = [
+        {
+            "id": row["id"],
+            "name": row["name"],
+            "region": row["region"],
+            "facilities": row["facilities"],
+            "type": row["type"],
+            "lat": float(row["lat"]),
+            "lng": float(row["lng"]),
+            "thumbnail_url": row["thumbnail_url"],
+            "source_page_url": row["source_page_url"],
+            "bookable": row["bookable"],
+            "weather_url": row["weather_url"],
+        }
+        for row in rows
+    ]
+    item_map = {item["id"]: item for item in items}
+    return [item_map[i] for i in hut_ids if i in item_map]

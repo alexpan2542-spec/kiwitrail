@@ -1,6 +1,6 @@
 # schemas/track.py
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, ConfigDict
 from typing import Any, Optional
 
 
@@ -22,6 +22,8 @@ class TrackSearchRequest(BaseModel):
     offset: int = Field(default=0, ge=0)
 
 class CommentSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     item_type: str
     item_id: int
     user_name: Optional[str] = None
@@ -42,5 +44,8 @@ class CommentSchema(BaseModel):
             raise ValueError("Provide comment text and/or at least one image URL.")
         return self
 
-    class Config:
-        from_attributes = True
+
+class FavouriteSchema(BaseModel):
+    user_email: str = Field(..., min_length=3, max_length=320)
+    item_type: str = Field(..., min_length=1, max_length=64)
+    item_id: int = Field(..., ge=1)

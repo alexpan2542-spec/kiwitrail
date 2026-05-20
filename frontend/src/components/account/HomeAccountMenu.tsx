@@ -10,16 +10,28 @@ import {
 import { registerCloseHomeAccountMenu } from "../map/homeAccountMenuRegistry";
 import { requestCollapseHomeMapLayers } from "../map/homeMapLayersRegistry";
 
+import type { MapItem } from "../home/MapItem";
+
 import AccountUserIcon from "./AccountUserIcon";
+import FavouritesModal from "./FavouritesModal";
 import SignInChoiceModal from "./SignInChoiceModal";
 import { useDismissOnOutsideClick } from "./useDismissOnOutsideClick";
 
 const OVERLAY_Z = 1100;
 
-export default function HomeAccountMenu() {
+export type HomeAccountMenuProps = {
+  backendUrl?: string;
+  onShowFavouriteOnMap?: (item: MapItem) => void;
+};
+
+export default function HomeAccountMenu({
+  backendUrl,
+  onShowFavouriteOnMap,
+}: HomeAccountMenuProps) {
   const { user, accessToken, setSession, clearSession, registerSignInHandler } =
     useHomeAuth();
   const [signInModalOpen, setSignInModalOpen] = useState(false);
+  const [favouritesModalOpen, setFavouritesModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -150,6 +162,22 @@ export default function HomeAccountMenu() {
                       className="dropdown-item"
                       onClick={() => {
                         closeMenu();
+                        if (!backendUrl) {
+                          console.error("Missing VITE_BACKEND_URL");
+                          return;
+                        }
+                        setFavouritesModalOpen(true);
+                      }}
+                    >
+                      My saved items
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      className="dropdown-item"
+                      onClick={() => {
+                        closeMenu();
                       }}
                     >
                       Settings
@@ -194,6 +222,15 @@ export default function HomeAccountMenu() {
           void runGoogleSignIn();
         }}
       />
+      {user && backendUrl ? (
+        <FavouritesModal
+          open={favouritesModalOpen}
+          onClose={() => setFavouritesModalOpen(false)}
+          backendUrl={backendUrl}
+          userEmail={user.email}
+          onShowOnMap={onShowFavouriteOnMap}
+        />
+      ) : null}
     </>
   );
 }

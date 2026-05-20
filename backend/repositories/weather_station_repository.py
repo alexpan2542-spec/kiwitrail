@@ -54,3 +54,35 @@ def select_map_items_weather_station(db: Session, filters):
         }
         for row in rows
     ]
+
+
+def select_map_items_weather_station_by_ids(db: Session, station_ids: list[int]):
+    if not station_ids:
+        return []
+
+    sql = text("""
+        SELECT
+            id,
+            name,
+            'weather_station' AS type,
+            ST_Y(geom) AS lat,
+            ST_X(geom) AS lng,
+            url AS source_page_url
+        FROM kiwi_weather_station
+        WHERE id = ANY(:station_ids)
+    """)
+
+    rows = db.execute(sql, {"station_ids": station_ids}).mappings().all()
+    items = [
+        {
+            "id": row["id"],
+            "name": row["name"],
+            "type": row["type"],
+            "lat": float(row["lat"]),
+            "lng": float(row["lng"]),
+            "source_page_url": row["source_page_url"],
+        }
+        for row in rows
+    ]
+    item_map = {item["id"]: item for item in items}
+    return [item_map[i] for i in station_ids if i in item_map]

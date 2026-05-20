@@ -1,7 +1,32 @@
 import type { ReactNode, RefObject } from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import { useHomeAuth } from "../../contexts/HomeAuthContext";
 import type { MapItem } from "./MapItem";
+
+function buildFavouriteCheckUrl(
+  base: string,
+  item: MapItem,
+  userEmail: string,
+): string {
+  const origin = base.replace(/\/$/, "");
+  const type = encodeURIComponent(item.type);
+  const id = encodeURIComponent(String(item.id));
+  const email = encodeURIComponent(userEmail);
+  return `${origin}/favourites/${type}/${id}?user_email=${email}`;
+}
+
+function buildFavouriteDeleteUrl(
+  base: string,
+  item: MapItem,
+  userEmail: string,
+): string {
+  const origin = base.replace(/\/$/, "");
+  const type = encodeURIComponent(item.type);
+  const id = encodeURIComponent(String(item.id));
+  const email = encodeURIComponent(userEmail);
+  return `${origin}/favourites/${type}/${id}?user_email=${email}`;
+}
 
 function IconDirections() {
   return (
@@ -53,7 +78,7 @@ function IconChat() {
   );
 }
 
-function IconHeart() {
+function IconHeartOutline() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -64,6 +89,25 @@ function IconHeart() {
       aria-hidden
     >
       <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z" />
+    </svg>
+  );
+}
+
+/** Solid heart when favourite is toggled on (Bootstrap Icons heart-fill style). */
+function IconHeartSolid() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="22"
+      height="22"
+      fill="currentColor"
+      viewBox="0 0 16 16"
+      aria-hidden
+    >
+      <path
+        fillRule="evenodd"
+        d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"
+      />
     </svg>
   );
 }
@@ -109,12 +153,12 @@ export type HomeSelectedItemPanelProps = {
   top: number;
   left: number;
   width: number;
+  backendUrl: string;
   /** Optional; runs after opening Google Maps at the item coordinates. */
   onDirectionsClick?: () => void;
   /** Called with embed URL when Weather is clicked (track `weather_url` or station `source_page_url`). */
   onWeatherClick?: (embedUrl: string) => void;
   onCommentsClick?: () => void;
-  onFavouriteClick?: () => void;
 };
 
 /**
@@ -133,21 +177,106 @@ export default function HomeSelectedItemPanel({
   top,
   left,
   width,
+  backendUrl,
   onDirectionsClick,
   onWeatherClick,
   onCommentsClick,
-  onFavouriteClick,
 }: HomeSelectedItemPanelProps) {
+  const { user, requestSignIn } = useHomeAuth();
   const [favouriteOn, setFavouriteOn] = useState(false);
+  const [favouriteLoading, setFavouriteLoading] = useState(false);
+  const [favouriteSaving, setFavouriteSaving] = useState(false);
 
   useEffect(() => {
-    setFavouriteOn(false);
-  }, [item.id, item.type]);
+    if (!backendUrl || !user?.email) {
+      setFavouriteOn(false);
+      setFavouriteLoading(false);
+      return;
+    }
 
-  const handleFavouriteClick = () => {
-    setFavouriteOn((v) => !v);
-    onFavouriteClick?.();
-  };
+    let cancelled = false;
+    setFavouriteLoading(true);
+    setFavouriteOn(false);
+
+    const url = buildFavouriteCheckUrl(backendUrl, item, user.email);
+    fetch(url)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`Favourite status failed (${res.status})`);
+        }
+        const data = (await res.json()) as { favoured?: boolean };
+        if (!cancelled) {
+          setFavouriteOn(Boolean(data.favoured));
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        if (!cancelled) {
+          setFavouriteOn(false);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setFavouriteLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [backendUrl, item.id, item.type, user?.email]);
+
+  const handleFavouriteClick = useCallback(async () => {
+    if (!backendUrl) return;
+    if (!user?.email) {
+      requestSignIn();
+      return;
+    }
+    if (favouriteSaving || favouriteLoading) return;
+
+    const nextFavoured = !favouriteOn;
+    setFavouriteOn(nextFavoured);
+    setFavouriteSaving(true);
+
+    try {
+      if (nextFavoured) {
+        const res = await fetch(`${backendUrl.replace(/\/$/, "")}/favourites`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_email: user.email,
+            item_type: item.type,
+            item_id: item.id,
+          }),
+        });
+        if (!res.ok) {
+          throw new Error(`Add favourite failed (${res.status})`);
+        }
+      } else {
+        const res = await fetch(
+          buildFavouriteDeleteUrl(backendUrl, item, user.email),
+          { method: "DELETE" },
+        );
+        if (!res.ok) {
+          throw new Error(`Remove favourite failed (${res.status})`);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setFavouriteOn(!nextFavoured);
+    } finally {
+      setFavouriteSaving(false);
+    }
+  }, [
+    backendUrl,
+    favouriteLoading,
+    favouriteOn,
+    favouriteSaving,
+    item.id,
+    item.type,
+    requestSignIn,
+    user?.email,
+  ]);
 
   const handleDirectionsClick = () => {
     openGoogleMapsAtCoordinates(item.lat, item.lng);
@@ -286,9 +415,12 @@ export default function HomeSelectedItemPanel({
               }
               isToggle
               favoured={favouriteOn}
-              onClick={handleFavouriteClick}
+              disabled={favouriteLoading || favouriteSaving}
+              onClick={() => {
+                void handleFavouriteClick();
+              }}
             >
-              <IconHeart />
+              {favouriteOn ? <IconHeartSolid /> : <IconHeartOutline />}
             </GmapsStyleAction>
           </div>
         </div>

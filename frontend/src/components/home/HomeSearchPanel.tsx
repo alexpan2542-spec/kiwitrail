@@ -139,7 +139,7 @@ export default function HomeSearchPanel({
           </svg>
           <span className="fw-bold">KiwiTrail</span>
           <span className="small text-muted fw-normal ms-auto">
-            version 2026.5.4
+            version 2026.5.21
           </span>
         </div>
         <div
@@ -252,10 +252,7 @@ export default function HomeSearchPanel({
                       onShowWeatherStationChange(e.target.checked)
                     }
                   />
-                  <label
-                    className="form-check-label"
-                    htmlFor="weather_station"
-                  >
+                  <label className="form-check-label" htmlFor="weather_station">
                     Weather Station
                   </label>
                 </div>

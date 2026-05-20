@@ -1,6 +1,11 @@
+import json
 import time
 from sqlalchemy import text
 from rapidfuzz import process, fuzz
+from sqlalchemy.orm import Session
+
+from schema import TrackSearchRequest
+from services.search_items_service import search_items
 
 
 class GazetteerSearcher:
@@ -28,11 +33,13 @@ class GazetteerSearcher:
         elapsed = time.time() - start_time
         print(f"GazetteerSearcher: Loaded {len(self._data_cache)} records in {elapsed:.2f}s")
 
-    def search(self, query: str, limit: int = 10, score_cutoff: float = 65.0):
+    def search(self, db: Session, filters: TrackSearchRequest, limit: int = 10, score_cutoff: float = 65.0):
+
+        query = filters.fuzzy_search
         if not query or not self.is_loaded:
             return []
 
-        # Performing fuzzy matching against the string list
+        # RapidFuzz search
         matches = process.extract(
             query,
             self._names_cache,
@@ -43,14 +50,48 @@ class GazetteerSearcher:
 
         results = []
         for name, score, index in matches:
-            # Retrieving the full record using the index provided by RapidFuzz
-            item = self._data_cache[index].copy()
-            item["fuzzy_score"] = round(score, 2)
-            item["item_type"] = "gazetteer"
-            results.append(item)
+            # Get the full record from the cache using the index
+            record = self._data_cache[index]
+            geojson = self.get_circle_geojson(db, record.get("lat"), record.get("lng"))
+            filters.selected_area = geojson
+            items = search_items(db, filters)
+
+            results.append({
+                "id": record.get("id"),
+                "name": record.get("name"),
+                "region": record.get("region"),
+                "lat": record.get("lat"),
+                "lng": record.get("lng"),
+                "fuzzy_score": round(score, 2),
+                "geojson": geojson,
+                "items_len": len(items),
+            })
 
         return results
 
+
+    # services/search_gazetteer_service.py
+
+    def get_circle_geojson(self, db, lat, lng, radius_km=15.0):
+        """
+        Use PostGIS to create a proper circular polygon GeoJSON
+        """
+        sql = text("""
+            SELECT ST_AsGeoJSON(
+                ST_Buffer(
+                    ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography, 
+                    :radius_meters
+                )::geometry
+            ) AS geojson
+        """)
+
+        result = db.execute(sql, {
+            "lng": lng,
+            "lat": lat,
+            "radius_meters": radius_km * 1000
+        }).scalar()
+
+        return json.loads(result)
 
 # Create the single instance to be imported by main.py
 gazetteer_searcher = GazetteerSearcher()

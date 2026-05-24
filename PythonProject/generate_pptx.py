@@ -1,4 +1,8 @@
-"""Generate the Kiwi Trail project presentation as a .pptx file."""
+"""Generate the Kiwi Trail project presentation as a .pptx file.
+
+Designed for a 7–8 minute group project presentation, following the rubric:
+content (clarity, organisation, depth), delivery, time management, and Q&A.
+"""
 
 from pptx import Presentation
 from pptx.util import Inches, Pt
@@ -7,34 +11,38 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import PP_ALIGN
 
 
-# Kiwi-inspired color palette
+# Kiwi-inspired colour palette
 NZ_GREEN = RGBColor(0x1B, 0x5E, 0x20)        # deep forest green
 NZ_GREEN_LIGHT = RGBColor(0x4C, 0xAF, 0x50)  # accent green
 NZ_BROWN = RGBColor(0x5D, 0x40, 0x37)        # earthy brown
 NZ_SKY = RGBColor(0x29, 0x79, 0xB5)          # sky / lake blue
+NZ_GOLD = RGBColor(0xE6, 0xA8, 0x17)         # warm gold accent
 TEXT_DARK = RGBColor(0x21, 0x21, 0x21)
+TEXT_MUTED = RGBColor(0x55, 0x55, 0x55)
 TEXT_LIGHT = RGBColor(0xFA, 0xFA, 0xFA)
 BG_LIGHT = RGBColor(0xF5, 0xF7, 0xF2)
 BG_CARD = RGBColor(0xFF, 0xFF, 0xFF)
+GRID_LINE = RGBColor(0xDD, 0xDD, 0xDD)
 
+
+# ---------------------------------------------------------------------------
+# Helper functions
+# ---------------------------------------------------------------------------
 
 def add_background(slide, color):
-    """Fill the slide background with a solid colour."""
     bg = slide.shapes.add_shape(
         MSO_SHAPE.RECTANGLE, 0, 0, prs.slide_width, prs.slide_height
     )
     bg.fill.solid()
     bg.fill.fore_color.rgb = color
     bg.line.fill.background()
-    # Send to back
     spTree = bg._element.getparent()
     spTree.remove(bg._element)
     spTree.insert(2, bg._element)
     return bg
 
 
-def add_side_band(slide, color, width=Inches(0.35)):
-    """Add a vertical colour band along the left edge."""
+def add_side_band(slide, color, width=Inches(0.3)):
     band = slide.shapes.add_shape(
         MSO_SHAPE.RECTANGLE, 0, 0, width, prs.slide_height
     )
@@ -44,10 +52,24 @@ def add_side_band(slide, color, width=Inches(0.35)):
     return band
 
 
-def add_footer(slide, text="Kiwi Trail  |  570 Programming Project"):
-    """Add a footer line at the bottom of the slide."""
+def add_page_number(slide, number, total):
     box = slide.shapes.add_textbox(
-        Inches(0.5), Inches(7.0), Inches(12.0), Inches(0.35)
+        Inches(12.1), Inches(7.05), Inches(1.1), Inches(0.35)
+    )
+    tf = box.text_frame
+    tf.margin_left = tf.margin_right = 0
+    p = tf.paragraphs[0]
+    p.alignment = PP_ALIGN.RIGHT
+    run = p.add_run()
+    run.text = f"{number} / {total}"
+    run.font.size = Pt(10)
+    run.font.color.rgb = TEXT_MUTED
+    run.font.italic = True
+
+
+def add_footer(slide, text="Kiwi Trail  |  570 Programming Project"):
+    box = slide.shapes.add_textbox(
+        Inches(0.5), Inches(7.05), Inches(10.0), Inches(0.35)
     )
     tf = box.text_frame
     tf.margin_left = tf.margin_right = 0
@@ -60,8 +82,7 @@ def add_footer(slide, text="Kiwi Trail  |  570 Programming Project"):
     run.font.italic = True
 
 
-def add_title(slide, text, top=Inches(0.4), color=NZ_GREEN, size=32):
-    """Add a styled slide title."""
+def add_title(slide, text, subtitle=None, top=Inches(0.4)):
     box = slide.shapes.add_textbox(
         Inches(0.7), top, Inches(12.0), Inches(0.9)
     )
@@ -71,26 +92,62 @@ def add_title(slide, text, top=Inches(0.4), color=NZ_GREEN, size=32):
     p.alignment = PP_ALIGN.LEFT
     run = p.add_run()
     run.text = text
-    run.font.size = Pt(size)
+    run.font.size = Pt(30)
     run.font.bold = True
-    run.font.color.rgb = color
+    run.font.color.rgb = NZ_GREEN
 
-    # Underline accent
     underline = slide.shapes.add_shape(
         MSO_SHAPE.RECTANGLE,
-        Inches(0.72), top + Inches(0.85),
+        Inches(0.72), top + Inches(0.78),
         Inches(1.0), Inches(0.06),
     )
     underline.fill.solid()
     underline.fill.fore_color.rgb = NZ_GREEN_LIGHT
     underline.line.fill.background()
-    return box
+
+    if subtitle:
+        sub_box = slide.shapes.add_textbox(
+            Inches(2.0), top + Inches(0.22),
+            Inches(10.5), Inches(0.5),
+        )
+        tf = sub_box.text_frame
+        p = tf.paragraphs[0]
+        p.alignment = PP_ALIGN.LEFT
+        run = p.add_run()
+        run.text = "  •  " + subtitle
+        run.font.size = Pt(14)
+        run.font.italic = True
+        run.font.color.rgb = TEXT_MUTED
+
+
+def add_presenter_tag(slide, name):
+    """Small label in the top-right indicating which group member presents."""
+    pill = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        Inches(10.6), Inches(0.45),
+        Inches(2.55), Inches(0.42),
+    )
+    pill.fill.solid()
+    pill.fill.fore_color.rgb = NZ_GREEN
+    pill.line.fill.background()
+    tf = pill.text_frame
+    tf.margin_left = Inches(0.1)
+    tf.margin_right = Inches(0.1)
+    tf.margin_top = Inches(0.02)
+    tf.margin_bottom = Inches(0.02)
+    p = tf.paragraphs[0]
+    p.alignment = PP_ALIGN.CENTER
+    run = p.add_run()
+    run.text = f"Presenter: {name}"
+    run.font.size = Pt(11)
+    run.font.bold = True
+    run.font.color.rgb = TEXT_LIGHT
 
 
 def add_bullets(slide, items, left=Inches(0.9), top=Inches(1.55),
                 width=Inches(11.5), height=Inches(5.2),
-                font_size=20, color=TEXT_DARK, bullet_color=NZ_GREEN_LIGHT):
-    """Add a bulleted list with custom round bullets."""
+                font_size=20, color=TEXT_DARK, bullet_color=NZ_GREEN_LIGHT,
+                spacing=8):
     box = slide.shapes.add_textbox(left, top, width, height)
     tf = box.text_frame
     tf.word_wrap = True
@@ -98,9 +155,15 @@ def add_bullets(slide, items, left=Inches(0.9), top=Inches(1.55),
     tf.margin_right = Inches(0.05)
 
     for i, item in enumerate(items):
+        # Items can be (main, sub) tuples to add a smaller second line
+        if isinstance(item, tuple):
+            main, sub = item
+        else:
+            main, sub = item, None
+
         p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
         p.alignment = PP_ALIGN.LEFT
-        p.space_after = Pt(8)
+        p.space_after = Pt(spacing)
 
         bullet_run = p.add_run()
         bullet_run.text = "●  "
@@ -109,66 +172,88 @@ def add_bullets(slide, items, left=Inches(0.9), top=Inches(1.55),
         bullet_run.font.bold = True
 
         text_run = p.add_run()
-        text_run.text = item
+        text_run.text = main
         text_run.font.size = Pt(font_size)
         text_run.font.color.rgb = color
+        text_run.font.bold = True
+
+        if sub:
+            sub_p = tf.add_paragraph()
+            sub_p.alignment = PP_ALIGN.LEFT
+            sub_p.space_after = Pt(spacing)
+            sub_p.level = 1
+            sub_run = sub_p.add_run()
+            sub_run.text = "      " + sub
+            sub_run.font.size = Pt(font_size - 4)
+            sub_run.font.color.rgb = TEXT_MUTED
     return box
 
 
 def add_speaker_note(slide, note):
-    """Add speaker notes to a slide."""
-    notes_tf = slide.notes_slide.notes_text_frame
-    notes_tf.text = note
+    slide.notes_slide.notes_text_frame.text = note
 
 
 def add_card(slide, left, top, width, height, title, items,
-             title_color=NZ_GREEN, title_size=18, body_size=14):
-    """Add a rounded card with a title and a list of items."""
+             accent_color=NZ_GREEN, title_size=18, body_size=14):
+    """A clean rounded card with coloured top stripe + title + bullet list."""
     card = slide.shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height
     )
     card.fill.solid()
     card.fill.fore_color.rgb = BG_CARD
-    card.line.color.rgb = NZ_GREEN_LIGHT
+    card.line.color.rgb = accent_color
     card.line.width = Pt(1.25)
     card.shadow.inherit = False
 
-    tf = card.text_frame
-    tf.margin_left = Inches(0.2)
-    tf.margin_right = Inches(0.2)
-    tf.margin_top = Inches(0.15)
-    tf.word_wrap = True
+    # Top stripe
+    stripe = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, left, top, width, Inches(0.5)
+    )
+    stripe.fill.solid()
+    stripe.fill.fore_color.rgb = accent_color
+    stripe.line.fill.background()
 
-    p = tf.paragraphs[0]
+    head_tf = stripe.text_frame
+    head_tf.margin_left = Inches(0.2)
+    head_tf.margin_top = Inches(0.07)
+    p = head_tf.paragraphs[0]
     p.alignment = PP_ALIGN.LEFT
     run = p.add_run()
     run.text = title
     run.font.bold = True
     run.font.size = Pt(title_size)
-    run.font.color.rgb = title_color
+    run.font.color.rgb = TEXT_LIGHT
 
-    for item in items:
-        para = tf.add_paragraph()
-        para.alignment = PP_ALIGN.LEFT
-        para.space_before = Pt(4)
-        bullet = para.add_run()
+    body = slide.shapes.add_textbox(
+        left + Inches(0.2),
+        top + Inches(0.65),
+        width - Inches(0.4),
+        height - Inches(0.75),
+    )
+    tf = body.text_frame
+    tf.word_wrap = True
+    for i, item in enumerate(items):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        p.alignment = PP_ALIGN.LEFT
+        p.space_after = Pt(4)
+        bullet = p.add_run()
         bullet.text = "•  "
         bullet.font.size = Pt(body_size)
-        bullet.font.color.rgb = NZ_GREEN_LIGHT
+        bullet.font.color.rgb = accent_color
         bullet.font.bold = True
-        body = para.add_run()
-        body.text = item
-        body.font.size = Pt(body_size)
-        body.font.color.rgb = TEXT_DARK
+        run = p.add_run()
+        run.text = item
+        run.font.size = Pt(body_size)
+        run.font.color.rgb = TEXT_DARK
     return card
 
 
-def base_slide():
-    """Create a blank slide with the standard styling (background + band + footer)."""
+def base_slide(page_num, total_pages):
     slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank
     add_background(slide, BG_LIGHT)
     add_side_band(slide, NZ_GREEN)
     add_footer(slide)
+    add_page_number(slide, page_num, total_pages)
     return slide
 
 
@@ -181,51 +266,55 @@ prs.slide_width = Inches(13.333)
 prs.slide_height = Inches(7.5)
 
 
+TOTAL_SLIDES = 11   # title, problem, objective, solution, architecture,
+                     # features, implementation, demo, challenges, future + conclusion, Q&A
+
+
 # ---------------------------------------------------------------------------
 # Slide 1 — Title
 # ---------------------------------------------------------------------------
 slide = prs.slides.add_slide(prs.slide_layouts[6])
 add_background(slide, NZ_GREEN)
 
-# Decorative shapes
-circle = slide.shapes.add_shape(
-    MSO_SHAPE.OVAL, Inches(-2), Inches(-2), Inches(5), Inches(5)
-)
-circle.fill.solid()
-circle.fill.fore_color.rgb = NZ_GREEN_LIGHT
-circle.line.fill.background()
+# Decorative circles
+c1 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(-2), Inches(-2),
+                             Inches(5), Inches(5))
+c1.fill.solid(); c1.fill.fore_color.rgb = NZ_GREEN_LIGHT
+c1.line.fill.background()
 
-circle2 = slide.shapes.add_shape(
-    MSO_SHAPE.OVAL, Inches(10), Inches(4.5), Inches(6), Inches(6)
-)
-circle2.fill.solid()
-circle2.fill.fore_color.rgb = NZ_BROWN
-circle2.line.fill.background()
+c2 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(10), Inches(4.5),
+                             Inches(6), Inches(6))
+c2.fill.solid(); c2.fill.fore_color.rgb = NZ_BROWN
+c2.line.fill.background()
 
-# Title
-box = slide.shapes.add_textbox(Inches(0.8), Inches(2.0), Inches(11.7), Inches(1.5))
-tf = box.text_frame
-tf.word_wrap = True
-p = tf.paragraphs[0]
-p.alignment = PP_ALIGN.LEFT
-run = p.add_run()
-run.text = "Kiwi Trail"
-run.font.size = Pt(80)
-run.font.bold = True
-run.font.color.rgb = TEXT_LIGHT
+c3 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(8.5), Inches(-1),
+                             Inches(2.5), Inches(2.5))
+c3.fill.solid(); c3.fill.fore_color.rgb = NZ_GOLD
+c3.line.fill.background()
 
-# Project tag line
-box = slide.shapes.add_textbox(Inches(0.85), Inches(3.3), Inches(11.5), Inches(0.6))
-tf = box.text_frame
+# Course tag
+tag = slide.shapes.add_textbox(Inches(0.85), Inches(1.3), Inches(11), Inches(0.4))
+tf = tag.text_frame
 p = tf.paragraphs[0]
 run = p.add_run()
 run.text = "570 Programming Project"
-run.font.size = Pt(26)
-run.font.color.rgb = NZ_GREEN_LIGHT
+run.font.size = Pt(18)
 run.font.bold = True
+run.font.color.rgb = NZ_GOLD
+
+# Main title
+box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(11.7), Inches(1.8))
+tf = box.text_frame
+tf.word_wrap = True
+p = tf.paragraphs[0]
+run = p.add_run()
+run.text = "Kiwi Trail"
+run.font.size = Pt(90)
+run.font.bold = True
+run.font.color.rgb = TEXT_LIGHT
 
 # Subtitle
-box = slide.shapes.add_textbox(Inches(0.85), Inches(4.0), Inches(11.5), Inches(0.8))
+box = slide.shapes.add_textbox(Inches(0.85), Inches(3.5), Inches(11.5), Inches(1.0))
 tf = box.text_frame
 tf.word_wrap = True
 p = tf.paragraphs[0]
@@ -237,20 +326,24 @@ run.font.italic = True
 
 # Accent line
 accent = slide.shapes.add_shape(
-    MSO_SHAPE.RECTANGLE, Inches(0.85), Inches(4.9), Inches(2.0), Inches(0.08)
+    MSO_SHAPE.RECTANGLE, Inches(0.85), Inches(4.4), Inches(2.5), Inches(0.08)
 )
-accent.fill.solid()
-accent.fill.fore_color.rgb = NZ_GREEN_LIGHT
+accent.fill.solid(); accent.fill.fore_color.rgb = NZ_GOLD
 accent.line.fill.background()
 
-# Name / date placeholder
-box = slide.shapes.add_textbox(Inches(0.85), Inches(5.2), Inches(11.5), Inches(1.5))
+# Team / date placeholder
+box = slide.shapes.add_textbox(Inches(0.85), Inches(4.7), Inches(11.5), Inches(2.0))
 tf = box.text_frame
 tf.word_wrap = True
-for line in ["Name / Team: [Your name / team name]",
-             "Date: [Presentation date]"]:
-    p = tf.add_paragraph() if line != "Name / Team: [Your name / team name]" else tf.paragraphs[0]
+labels = [
+    "Team: [Team name]",
+    "Members: [Member 1]  •  [Member 2]  •  [Member 3]  •  [Member 4]",
+    "Date: [Presentation date]",
+]
+for i, line in enumerate(labels):
+    p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
     p.alignment = PP_ALIGN.LEFT
+    p.space_after = Pt(6)
     run = p.add_run()
     run.text = line
     run.font.size = Pt(18)
@@ -258,447 +351,410 @@ for line in ["Name / Team: [Your name / team name]",
 
 add_speaker_note(
     slide,
-    "Today I will introduce Kiwi Trail, a web application designed to help "
-    "New Zealand locals and visitors find hiking tracks, huts, campsites, "
-    "and outdoor destinations more easily."
+    "[~30 sec] Greet the audience and introduce the team. "
+    "Say: 'Hi everyone, we are Team [name] and today we will introduce "
+    "Kiwi Trail — a web application that helps people plan outdoor "
+    "activities in New Zealand.' Briefly mention each presenter and the "
+    "section they will cover."
 )
 
 
 # ---------------------------------------------------------------------------
-# Slide 2 — Problem Statement
+# Slide 2 — Problem & Motivation
 # ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "Problem Statement")
+slide = base_slide(2, TOTAL_SLIDES)
+add_title(slide, "Problem & Motivation", subtitle="Why Kiwi Trail?")
+add_presenter_tag(slide, "[Member 1]")
 
-intro = slide.shapes.add_textbox(Inches(0.9), Inches(1.5), Inches(11.5), Inches(0.5))
-tf = intro.text_frame
-p = tf.paragraphs[0]
-run = p.add_run()
-run.text = "New Zealand has many outdoor places such as:"
-run.font.size = Pt(20)
-run.font.color.rgb = TEXT_DARK
-
-add_bullets(
+# Left: where data lives now
+add_card(
     slide,
+    Inches(0.9), Inches(1.7),
+    Inches(5.9), Inches(2.4),
+    "NZ outdoor data lives in many places",
     [
-        "Hiking tracks",
-        "Huts",
-        "Campsites",
-        "Regional parks and outdoor areas",
+        "DOC: tracks, huts, campsites",
+        "LINZ: maps and place names",
+        "NIWA: weather forecasts",
+        "Council sites: regional parks",
     ],
-    top=Inches(2.1),
-    font_size=20,
+    accent_color=NZ_SKY,
+    title_size=16,
+    body_size=14,
 )
 
-# Problem callout card
+# Right: what users need
+add_card(
+    slide,
+    Inches(7.0), Inches(1.7),
+    Inches(5.4), Inches(2.4),
+    "What users actually want",
+    [
+        "Find places nearby quickly",
+        "Filter by region & difficulty",
+        "See details, map, and weather",
+        "Plan trips in one place",
+    ],
+    accent_color=NZ_GREEN_LIGHT,
+    title_size=16,
+    body_size=14,
+)
+
+# Problem callout
 card = slide.shapes.add_shape(
     MSO_SHAPE.ROUNDED_RECTANGLE,
-    Inches(0.9), Inches(4.5), Inches(11.5), Inches(2.2),
+    Inches(0.9), Inches(4.4), Inches(11.5), Inches(2.3),
 )
-card.fill.solid()
-card.fill.fore_color.rgb = NZ_GREEN
+card.fill.solid(); card.fill.fore_color.rgb = NZ_GREEN
 card.line.fill.background()
-
 tf = card.text_frame
-tf.margin_left = Inches(0.3)
-tf.margin_top = Inches(0.2)
+tf.margin_left = Inches(0.3); tf.margin_top = Inches(0.2)
 tf.word_wrap = True
 p = tf.paragraphs[0]
 run = p.add_run()
-run.text = "Problem"
-run.font.bold = True
-run.font.size = Pt(22)
-run.font.color.rgb = TEXT_LIGHT
-
-p = tf.add_paragraph()
-p.space_before = Pt(8)
+run.text = "The Problem"
+run.font.bold = True; run.font.size = Pt(20)
+run.font.color.rgb = NZ_GOLD
+p = tf.add_paragraph(); p.space_before = Pt(8)
 run = p.add_run()
 run.text = (
-    "Information about outdoor places is often spread across different datasets "
-    "and websites. Users need a convenient way to search, filter, view, and plan "
-    "outdoor activities using local New Zealand data."
+    "Outdoor activity information is scattered across many sources. "
+    "Users have to switch between websites to find tracks, check maps, "
+    "and view the weather — making trip planning slow and frustrating."
 )
-run.font.size = Pt(18)
-run.font.color.rgb = TEXT_LIGHT
+run.font.size = Pt(18); run.font.color.rgb = TEXT_LIGHT
 
 add_speaker_note(
     slide,
-    "The main issue this project solves is that outdoor activity data exists, "
-    "but users may need to visit different sources to find tracks, huts, "
-    "campsites, locations, maps, and weather information."
+    "[~45 sec] Explain that New Zealand has rich outdoor data, but it is "
+    "spread across DOC, LINZ, NIWA, and council websites. Give an example: "
+    "'Imagine you want to go hiking this weekend — you might need 4 or 5 "
+    "tabs to figure out which track, where it is, how hard it is, and what "
+    "the weather will be.' This motivates building Kiwi Trail."
 )
 
 
 # ---------------------------------------------------------------------------
-# Slide 3 — Project Objective
+# Slide 3 — Objective & Target Users
 # ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "Project Objective")
+slide = base_slide(3, TOTAL_SLIDES)
+add_title(slide, "Objective & Target Users",
+          subtitle="One platform for outdoor planning")
+add_presenter_tag(slide, "[Member 1]")
 
-intro = slide.shapes.add_textbox(Inches(0.9), Inches(1.5), Inches(11.5), Inches(0.6))
-tf = intro.text_frame
-p = tf.paragraphs[0]
-run = p.add_run()
-run.text = "The objective of Kiwi Trail is to build a web application that helps:"
-run.font.size = Pt(20)
-run.font.color.rgb = TEXT_DARK
-
+# Objective bullets
 add_bullets(
     slide,
     [
-        "Kiwis plan hiking and camping activities",
-        "Visitors explore outdoor places in New Zealand",
-        "Users find nearby tracks, huts, and campsites",
-        "Users view details, maps, directions, and weather information",
+        ("Combine NZ outdoor datasets in one app",
+         "Tracks, huts, campsites, weather, maps"),
+        ("Help users plan trips faster",
+         "Search, filter, view details, navigate"),
+        ("Provide a clean and modern map-based UI",
+         "Built for both desktop and mobile browsers"),
     ],
-    top=Inches(2.3),
-    font_size=22,
+    left=Inches(0.9), top=Inches(1.6),
+    width=Inches(7.5), height=Inches(5.0),
+    font_size=18, spacing=4,
 )
 
-# Goal callout
-goal = slide.shapes.add_shape(
-    MSO_SHAPE.ROUNDED_RECTANGLE,
-    Inches(0.9), Inches(5.7), Inches(11.5), Inches(1.0),
+# Target users cards on the right
+add_card(
+    slide,
+    Inches(8.7), Inches(1.6),
+    Inches(3.9), Inches(1.6),
+    "Local Kiwis",
+    [
+        "Plan weekend hikes",
+        "Discover new tracks",
+    ],
+    accent_color=NZ_GREEN_LIGHT,
+    title_size=15, body_size=13,
 )
-goal.fill.solid()
-goal.fill.fore_color.rgb = NZ_SKY
-goal.line.fill.background()
-tf = goal.text_frame
-tf.margin_left = Inches(0.3)
-tf.margin_top = Inches(0.15)
-tf.word_wrap = True
-p = tf.paragraphs[0]
-run = p.add_run()
-run.text = "Goal: "
-run.font.bold = True
-run.font.size = Pt(18)
-run.font.color.rgb = TEXT_LIGHT
-run2 = p.add_run()
-run2.text = (
-    "Make outdoor planning easier, faster, and more convenient by combining "
-    "local datasets into one web application."
+add_card(
+    slide,
+    Inches(8.7), Inches(3.3),
+    Inches(3.9), Inches(1.6),
+    "Visitors / Tourists",
+    [
+        "Explore NZ outdoors",
+        "Quick & easy planning",
+    ],
+    accent_color=NZ_SKY,
+    title_size=15, body_size=13,
 )
-run2.font.size = Pt(18)
-run2.font.color.rgb = TEXT_LIGHT
+add_card(
+    slide,
+    Inches(8.7), Inches(5.0),
+    Inches(3.9), Inches(1.6),
+    "Casual Campers",
+    [
+        "Find nearby campsites",
+        "Check weather first",
+    ],
+    accent_color=NZ_BROWN,
+    title_size=15, body_size=13,
+)
 
 add_speaker_note(
     slide,
-    "The goal is to make outdoor planning easier, faster, and more convenient "
-    "by combining local datasets into one web application."
+    "[~45 sec] State the goal in one sentence: 'Make outdoor planning easier "
+    "by combining NZ datasets into one web app.' Highlight three user "
+    "groups — locals, visitors, and casual campers — and how each benefits."
 )
 
 
 # ---------------------------------------------------------------------------
 # Slide 4 — Proposed Solution
 # ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "Proposed Solution")
+slide = base_slide(4, TOTAL_SLIDES)
+add_title(slide, "Proposed Solution",
+          subtitle="A map-based web app with planning tools")
+add_presenter_tag(slide, "[Member 2]")
 
-intro = slide.shapes.add_textbox(Inches(0.9), Inches(1.45), Inches(11.5), Inches(0.5))
-tf = intro.text_frame
-p = tf.paragraphs[0]
-run = p.add_run()
-run.text = "Kiwi Trail is a map-based web application where users can:"
-run.font.size = Pt(18)
-run.font.color.rgb = TEXT_DARK
-
-# Two columns of bullets
 left_items = [
     "Select a region",
-    "Choose hiking difficulty",
-    "Filter tracks, huts, and campsites",
-    "Search places using fuzzy search",
-    "View nearby items within 15 km",
+    "Filter by difficulty",
+    "Filter tracks / huts / campsites",
+    "Fuzzy search by name",
+    "Nearby results within 15 km",
 ]
 right_items = [
-    "Check item details",
-    "Open Google Maps navigation",
-    "View weather forecasts",
-    "Add comments",
+    "View item details",
+    "Open Google Maps directions",
+    "View weather forecast",
     "Save favourite places",
+    "Add comments",
 ]
 
+# Left list
+list_box = slide.shapes.add_shape(
+    MSO_SHAPE.ROUNDED_RECTANGLE,
+    Inches(0.9), Inches(1.6), Inches(5.9), Inches(5.1),
+)
+list_box.fill.solid(); list_box.fill.fore_color.rgb = BG_CARD
+list_box.line.color.rgb = NZ_GREEN_LIGHT; list_box.line.width = Pt(1.25)
+
+head = slide.shapes.add_shape(
+    MSO_SHAPE.RECTANGLE, Inches(0.9), Inches(1.6),
+    Inches(5.9), Inches(0.5),
+)
+head.fill.solid(); head.fill.fore_color.rgb = NZ_GREEN_LIGHT
+head.line.fill.background()
+tf = head.text_frame; tf.margin_left = Inches(0.2); tf.margin_top = Inches(0.07)
+p = tf.paragraphs[0]
+run = p.add_run()
+run.text = "Discover places"
+run.font.bold = True; run.font.size = Pt(16)
+run.font.color.rgb = TEXT_LIGHT
+
 add_bullets(slide, left_items,
-            left=Inches(0.9), top=Inches(2.1),
-            width=Inches(5.7), height=Inches(4.5), font_size=18)
+            left=Inches(1.1), top=Inches(2.3),
+            width=Inches(5.5), height=Inches(4.0), font_size=17, spacing=6)
+
+# Right list
+list_box = slide.shapes.add_shape(
+    MSO_SHAPE.ROUNDED_RECTANGLE,
+    Inches(7.0), Inches(1.6), Inches(5.4), Inches(5.1),
+)
+list_box.fill.solid(); list_box.fill.fore_color.rgb = BG_CARD
+list_box.line.color.rgb = NZ_SKY; list_box.line.width = Pt(1.25)
+
+head = slide.shapes.add_shape(
+    MSO_SHAPE.RECTANGLE, Inches(7.0), Inches(1.6),
+    Inches(5.4), Inches(0.5),
+)
+head.fill.solid(); head.fill.fore_color.rgb = NZ_SKY
+head.line.fill.background()
+tf = head.text_frame; tf.margin_left = Inches(0.2); tf.margin_top = Inches(0.07)
+p = tf.paragraphs[0]
+run = p.add_run()
+run.text = "Plan your trip"
+run.font.bold = True; run.font.size = Pt(16)
+run.font.color.rgb = TEXT_LIGHT
+
 add_bullets(slide, right_items,
-            left=Inches(6.9), top=Inches(2.1),
-            width=Inches(5.7), height=Inches(4.5), font_size=18)
+            left=Inches(7.2), top=Inches(2.3),
+            width=Inches(5.0), height=Inches(4.0), font_size=17, spacing=6)
 
 add_speaker_note(
     slide,
-    "The solution is a user-friendly website that combines outdoor activity "
-    "data with interactive map features and practical planning tools."
+    "[~45 sec] Walk the audience through the two halves of the app: "
+    "'Discover' (how users find places) and 'Plan' (what they do once "
+    "they've picked one). Emphasise that the 15 km nearby search and "
+    "fuzzy search make discovery very fast."
 )
 
 
 # ---------------------------------------------------------------------------
 # Slide 5 — System Architecture
 # ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "System Architecture")
+slide = base_slide(5, TOTAL_SLIDES)
+add_title(slide, "System Architecture",
+          subtitle="React • FastAPI • PostgreSQL")
+add_presenter_tag(slide, "[Member 2]")
 
-# Left column: stack description
+# Left: stack & data sources
 add_card(
     slide,
-    Inches(0.9), Inches(1.5),
-    Inches(5.6), Inches(2.5),
+    Inches(0.9), Inches(1.6),
+    Inches(5.6), Inches(2.4),
     "Technology Stack",
     [
         "Frontend: React",
-        "Backend: FastAPI",
+        "Backend: FastAPI (Python)",
         "Database: PostgreSQL",
     ],
-    title_size=20,
-    body_size=16,
+    accent_color=NZ_GREEN,
+    title_size=18, body_size=15,
 )
 
 add_card(
     slide,
     Inches(0.9), Inches(4.2),
-    Inches(5.6), Inches(2.6),
+    Inches(5.6), Inches(2.5),
     "Data Sources",
     [
-        "DOC datasets: tracks, huts, campsites",
-        "LINZ datasets: tile map and gazetteer",
+        "DOC: tracks, huts, campsites",
+        "LINZ: map tiles + gazetteer",
         "Region boundary data",
         "NIWA weather widget",
     ],
-    title_size=20,
-    body_size=16,
+    accent_color=NZ_BROWN,
+    title_size=18, body_size=15,
 )
 
-# Right column: simple architecture diagram
-diagram_left = Inches(7.2)
-diagram_top = Inches(1.5)
-diagram_width = Inches(5.4)
-diagram_height = Inches(5.3)
+# Right: layered architecture diagram
+diagram_left = Inches(7.0)
+diagram_top = Inches(1.55)
+layer_w = Inches(5.4)
+layer_h = Inches(0.7)
+gap = Inches(0.2)
 
-
-def diagram_box(left, top, width, height, label, fill, text_color=TEXT_LIGHT,
-                shape=MSO_SHAPE.ROUNDED_RECTANGLE, font_size=14):
-    s = slide.shapes.add_shape(shape, left, top, width, height)
-    s.fill.solid()
-    s.fill.fore_color.rgb = fill
-    s.line.fill.background()
-    tf = s.text_frame
-    tf.margin_left = Inches(0.05)
-    tf.margin_right = Inches(0.05)
+layers = [
+    ("User (browser)", NZ_GOLD),
+    ("React Frontend  —  UI / map / search", NZ_GREEN_LIGHT),
+    ("FastAPI Backend  —  REST APIs", NZ_SKY),
+    ("PostgreSQL  —  app database", NZ_GREEN),
+    ("DOC / LINZ / Region / Weather sources", NZ_BROWN),
+]
+y = diagram_top
+prev_bottom = None
+for label, color in layers:
+    box = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        diagram_left, y, layer_w, layer_h,
+    )
+    box.fill.solid(); box.fill.fore_color.rgb = color
+    box.line.fill.background()
+    tf = box.text_frame
+    tf.margin_left = Inches(0.1); tf.margin_right = Inches(0.1)
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.CENTER
     run = p.add_run()
     run.text = label
-    run.font.bold = True
-    run.font.size = Pt(font_size)
-    run.font.color.rgb = text_color
-    return s
+    run.font.bold = True; run.font.size = Pt(14)
+    run.font.color.rgb = TEXT_LIGHT
 
-
-layer_height = Inches(0.7)
-gap = Inches(0.2)
-layer_width = Inches(4.0)
-layer_left = diagram_left + (diagram_width - layer_width) / 2
-
-layers = [
-    ("User", NZ_BROWN),
-    ("React Frontend", NZ_GREEN_LIGHT),
-    ("FastAPI Backend", NZ_SKY),
-    ("PostgreSQL Database", NZ_GREEN),
-    ("DOC / LINZ / Region / Weather Data", NZ_BROWN),
-]
-y = diagram_top + Inches(0.2)
-prev_bottom = None
-for label, color in layers:
-    box = diagram_box(layer_left, y, layer_width, layer_height, label, color,
-                      font_size=15)
     if prev_bottom is not None:
-        connector = slide.shapes.add_shape(
+        arrow = slide.shapes.add_shape(
             MSO_SHAPE.DOWN_ARROW,
-            layer_left + layer_width / 2 - Inches(0.12),
+            diagram_left + layer_w / 2 - Inches(0.12),
             prev_bottom,
             Inches(0.24),
             gap,
         )
-        connector.fill.solid()
-        connector.fill.fore_color.rgb = NZ_GREEN
-        connector.line.fill.background()
-    prev_bottom = y + layer_height
+        arrow.fill.solid(); arrow.fill.fore_color.rgb = NZ_GREEN
+        arrow.line.fill.background()
+    prev_bottom = y + layer_h
     y = prev_bottom + gap
 
 add_speaker_note(
     slide,
-    "The system uses React for the user interface, FastAPI for backend APIs, "
-    "and PostgreSQL to store imported track, hut, campsite, and region data."
+    "[~45 sec] Explain the three-tier architecture briefly. "
+    "React talks to FastAPI, FastAPI talks to PostgreSQL, and we "
+    "imported DOC, LINZ, regional, and NIWA data into the database. "
+    "Mention why we chose this stack (fast, light, easy to deploy)."
 )
 
 
 # ---------------------------------------------------------------------------
-# Slide 6 — Data Workflow
+# Slide 6 — Key Features
 # ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "Data Workflow")
-
-steps = [
-    "Collect NZ local datasets",
-    "Clean & prepare data",
-    "Import into PostgreSQL",
-    "Backend exposes APIs",
-    "Frontend shows on map",
-    "Users search & plan",
-]
-
-# Two rows of three step cards
-step_w = Inches(3.9)
-step_h = Inches(2.0)
-gap_x = Inches(0.25)
-gap_y = Inches(0.4)
-start_left = Inches(0.9)
-start_top = Inches(1.7)
-
-colors = [NZ_GREEN, NZ_GREEN_LIGHT, NZ_SKY, NZ_BROWN, NZ_GREEN_LIGHT, NZ_GREEN]
-
-for i, (text, color) in enumerate(zip(steps, colors)):
-    row = i // 3
-    col = i % 3
-    left = start_left + col * (step_w + gap_x)
-    top = start_top + row * (step_h + gap_y)
-
-    card = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE, left, top, step_w, step_h
-    )
-    card.fill.solid()
-    card.fill.fore_color.rgb = color
-    card.line.fill.background()
-
-    # Step number circle
-    num = slide.shapes.add_shape(
-        MSO_SHAPE.OVAL,
-        left + Inches(0.2), top + Inches(0.2),
-        Inches(0.6), Inches(0.6),
-    )
-    num.fill.solid()
-    num.fill.fore_color.rgb = TEXT_LIGHT
-    num.line.fill.background()
-    tf = num.text_frame
-    tf.margin_left = tf.margin_right = 0
-    tf.margin_top = tf.margin_bottom = 0
-    p = tf.paragraphs[0]
-    p.alignment = PP_ALIGN.CENTER
-    run = p.add_run()
-    run.text = str(i + 1)
-    run.font.bold = True
-    run.font.size = Pt(20)
-    run.font.color.rgb = color
-
-    # Step description
-    txt = slide.shapes.add_textbox(
-        left + Inches(0.2),
-        top + Inches(0.95),
-        step_w - Inches(0.4),
-        step_h - Inches(1.0),
-    )
-    tf = txt.text_frame
-    tf.word_wrap = True
-    p = tf.paragraphs[0]
-    p.alignment = PP_ALIGN.LEFT
-    run = p.add_run()
-    run.text = text
-    run.font.bold = True
-    run.font.size = Pt(16)
-    run.font.color.rgb = TEXT_LIGHT
-
-add_speaker_note(
-    slide,
-    "The application depends on data processing. After importing local "
-    "datasets into the database, the backend makes this data available "
-    "to the frontend."
-)
-
-
-# ---------------------------------------------------------------------------
-# Slide 7 — Key Features
-# ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "Key Features")
+slide = base_slide(6, TOTAL_SLIDES)
+add_title(slide, "Key Features", subtitle="What users can do")
+add_presenter_tag(slide, "[Member 3]")
 
 features = [
-    "Region selection",
-    "Hiking difficulty filter",
-    "Track / hut / campsite filtering",
-    "Fuzzy search",
-    "Nearby results within 15 km",
-    "Interactive map display",
-    "Detail page for each item",
-    "Google Maps directions",
-    "Weather forecast widget",
-    "User comments",
-    "Favourite item saving",
-    "User-friendly experience",
+    ("Region selection", NZ_GREEN),
+    ("Difficulty filter", NZ_GREEN_LIGHT),
+    ("Type filter (track / hut / camp)", NZ_SKY),
+    ("Fuzzy search", NZ_BROWN),
+    ("Nearby within 15 km", NZ_GOLD),
+    ("Interactive map", NZ_GREEN),
+    ("Detail pages", NZ_GREEN_LIGHT),
+    ("Google Maps directions", NZ_SKY),
+    ("Weather forecast", NZ_BROWN),
+    ("User comments", NZ_GOLD),
+    ("Favourites list", NZ_GREEN),
+    ("Mobile-friendly UI", NZ_SKY),
 ]
 
-# 3-column grid of feature pills
 cols = 3
-rows = 4
 pill_w = Inches(3.9)
 pill_h = Inches(1.05)
 gap_x = Inches(0.25)
-gap_y = Inches(0.2)
+gap_y = Inches(0.22)
 start_left = Inches(0.9)
-start_top = Inches(1.65)
+start_top = Inches(1.6)
 
-colors_cycle = [NZ_GREEN, NZ_GREEN_LIGHT, NZ_SKY, NZ_BROWN]
-
-for i, text in enumerate(features):
-    row = i // cols
-    col = i % cols
+for i, (text, color) in enumerate(features):
+    row, col = divmod(i, cols)
     left = start_left + col * (pill_w + gap_x)
     top = start_top + row * (pill_h + gap_y)
-    color = colors_cycle[row % len(colors_cycle)]
 
     pill = slide.shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE, left, top, pill_w, pill_h
     )
-    pill.fill.solid()
-    pill.fill.fore_color.rgb = BG_CARD
-    pill.line.color.rgb = color
-    pill.line.width = Pt(1.5)
+    pill.fill.solid(); pill.fill.fore_color.rgb = BG_CARD
+    pill.line.color.rgb = color; pill.line.width = Pt(1.5)
 
-    # Left accent bar
     bar = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE,
-        left, top, Inches(0.18), pill_h,
+        MSO_SHAPE.RECTANGLE, left, top, Inches(0.18), pill_h,
     )
-    bar.fill.solid()
-    bar.fill.fore_color.rgb = color
+    bar.fill.solid(); bar.fill.fore_color.rgb = color
     bar.line.fill.background()
 
     tf = pill.text_frame
-    tf.margin_left = Inches(0.3)
-    tf.margin_right = Inches(0.1)
+    tf.margin_left = Inches(0.3); tf.margin_right = Inches(0.1)
     tf.word_wrap = True
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.LEFT
     run = p.add_run()
     run.text = text
-    run.font.bold = True
-    run.font.size = Pt(15)
+    run.font.bold = True; run.font.size = Pt(15)
     run.font.color.rgb = TEXT_DARK
 
 add_speaker_note(
     slide,
-    "These features are designed to support the full planning process, from "
-    "searching for a place to checking details, weather, and navigation."
+    "[~45 sec] Walk the audience through the headline features at a high "
+    "level — don't list every single one. Group them: 'discovery features' "
+    "(search / filter / nearby), 'detail features' (page / weather / map "
+    "link), and 'user features' (comments / favourites). Tell the audience "
+    "they'll see these in action in the demo."
 )
 
 
 # ---------------------------------------------------------------------------
-# Slide 8 — Implementation Details
+# Slide 7 — Implementation
 # ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "Implementation Details")
+slide = base_slide(7, TOTAL_SLIDES)
+add_title(slide, "Implementation",
+          subtitle="Frontend • Backend • Database")
+add_presenter_tag(slide, "[Member 3]")
 
 card_w = Inches(4.0)
-card_h = Inches(5.0)
+card_h = Inches(4.8)
 card_top = Inches(1.7)
 gap = Inches(0.2)
 
@@ -707,15 +763,14 @@ add_card(
     Inches(0.9), card_top, card_w, card_h,
     "Frontend (React)",
     [
-        "Map display",
-        "Search bar",
-        "Filter panel",
-        "Item detail view",
-        "Comment section",
-        "Favourite list",
+        "Interactive map view",
+        "Search & filter panel",
+        "Item detail pages",
+        "Comments section",
+        "Favourites list",
     ],
-    title_size=18,
-    body_size=15,
+    accent_color=NZ_GREEN_LIGHT,
+    title_size=17, body_size=14,
 )
 
 add_card(
@@ -723,14 +778,14 @@ add_card(
     Inches(0.9) + card_w + gap, card_top, card_w, card_h,
     "Backend (FastAPI)",
     [
-        "API routes for tracks, huts, campsites",
-        "Region and difficulty filtering",
-        "Nearby location search",
-        "User comment handling",
-        "Favourite handling",
+        "REST API endpoints",
+        "Region / difficulty filters",
+        "Nearby (15 km) search",
+        "Fuzzy search logic",
+        "Comments & favourites",
     ],
-    title_size=18,
-    body_size=15,
+    accent_color=NZ_SKY,
+    title_size=17, body_size=14,
 )
 
 add_card(
@@ -738,79 +793,133 @@ add_card(
     Inches(0.9) + 2 * (card_w + gap), card_top, card_w, card_h,
     "Database (PostgreSQL)",
     [
-        "Tracks",
-        "Huts",
-        "Campsites",
-        "Regions",
-        "Users",
-        "Comments",
-        "Favourites",
+        "tracks, huts, campsites",
+        "regions",
+        "users",
+        "comments",
+        "favourites",
     ],
-    title_size=18,
-    body_size=15,
+    accent_color=NZ_BROWN,
+    title_size=17, body_size=14,
 )
+
+# Workflow strip at the bottom
+strip_top = Inches(6.65)
+steps = ["Collect data", "Clean & import", "Expose APIs", "Show on map"]
+step_w = Inches(2.9)
+step_gap = Inches(0.1)
+start_left = Inches(0.9)
+for i, label in enumerate(steps):
+    left = start_left + i * (step_w + step_gap)
+    box = slide.shapes.add_shape(
+        MSO_SHAPE.PENTAGON, left, strip_top, step_w, Inches(0.55)
+    )
+    box.fill.solid()
+    box.fill.fore_color.rgb = [NZ_GREEN, NZ_GREEN_LIGHT, NZ_SKY, NZ_BROWN][i]
+    box.line.fill.background()
+    tf = box.text_frame
+    tf.margin_left = Inches(0.1); tf.margin_top = Inches(0.05)
+    p = tf.paragraphs[0]
+    p.alignment = PP_ALIGN.CENTER
+    run = p.add_run()
+    run.text = f"{i+1}. {label}"
+    run.font.bold = True; run.font.size = Pt(12)
+    run.font.color.rgb = TEXT_LIGHT
 
 add_speaker_note(
     slide,
-    "The project is divided into frontend, backend, and database modules. "
-    "Each part has a clear role in supporting the user experience."
+    "[~45 sec] Explain how the project is divided across the three layers. "
+    "Mention what each team member worked on if relevant. Briefly call out "
+    "the data pipeline at the bottom: collect → clean → import → expose → "
+    "display."
 )
 
 
 # ---------------------------------------------------------------------------
-# Slide 9 — Results / Demo
+# Slide 8 — Demo
 # ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "Results / Demo")
+slide = base_slide(8, TOTAL_SLIDES)
+add_title(slide, "Live Demo", subtitle="Walkthrough of Kiwi Trail")
+add_presenter_tag(slide, "[Member 4]")
 
-# Left: capabilities list
-add_bullets(
-    slide,
-    [
-        "Display outdoor locations on a map",
-        "Filter places by region and difficulty",
-        "Search outdoor items",
-        "Show nearby results",
-        "Display item details",
-        "Redirect users to Google Maps",
-        "Show weather forecasts",
-        "Support comments and favourites",
-    ],
-    left=Inches(0.9), top=Inches(1.6),
-    width=Inches(6.0), height=Inches(5.2),
-    font_size=16,
+# Left: demo flow
+flow_steps = [
+    "Open the home page",
+    "Select a region (e.g. Auckland)",
+    "Filter by track + difficulty",
+    "Use fuzzy search for a place",
+    "Open a track's detail page",
+    "View weather + Google Maps link",
+    "Add to favourites / leave a comment",
+]
+flow_card = slide.shapes.add_shape(
+    MSO_SHAPE.ROUNDED_RECTANGLE,
+    Inches(0.9), Inches(1.6),
+    Inches(5.4), Inches(5.1),
 )
+flow_card.fill.solid(); flow_card.fill.fore_color.rgb = BG_CARD
+flow_card.line.color.rgb = NZ_GREEN; flow_card.line.width = Pt(1.25)
+
+head = slide.shapes.add_shape(
+    MSO_SHAPE.RECTANGLE, Inches(0.9), Inches(1.6),
+    Inches(5.4), Inches(0.5),
+)
+head.fill.solid(); head.fill.fore_color.rgb = NZ_GREEN
+head.line.fill.background()
+tf = head.text_frame; tf.margin_left = Inches(0.2); tf.margin_top = Inches(0.07)
+p = tf.paragraphs[0]
+run = p.add_run()
+run.text = "Demo Flow"
+run.font.bold = True; run.font.size = Pt(16)
+run.font.color.rgb = TEXT_LIGHT
+
+# Numbered list
+list_box = slide.shapes.add_textbox(
+    Inches(1.05), Inches(2.25),
+    Inches(5.2), Inches(4.4),
+)
+tf = list_box.text_frame
+tf.word_wrap = True
+for i, step in enumerate(flow_steps):
+    p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+    p.alignment = PP_ALIGN.LEFT
+    p.space_after = Pt(8)
+    num_run = p.add_run()
+    num_run.text = f"{i+1}.  "
+    num_run.font.size = Pt(16); num_run.font.bold = True
+    num_run.font.color.rgb = NZ_GREEN
+    txt_run = p.add_run()
+    txt_run.text = step
+    txt_run.font.size = Pt(16)
+    txt_run.font.color.rgb = TEXT_DARK
 
 # Right: screenshot placeholder grid
-ph_left = Inches(7.2)
+ph_left = Inches(6.6)
 ph_top = Inches(1.6)
-ph_w = Inches(2.6)
+ph_w = Inches(3.2)
 ph_h = Inches(1.55)
 gap_x = Inches(0.2)
 gap_y = Inches(0.2)
 
-labels = [
+screenshot_labels = [
     "Home page",
-    "Map page",
+    "Map view",
     "Search / filter",
     "Detail page",
+    "Weather + directions",
     "Favourites / comments",
-    "Weather widget",
 ]
 
-for idx, label in enumerate(labels):
-    row = idx // 2
-    col = idx % 2
+for idx, label in enumerate(screenshot_labels):
+    row, col = divmod(idx, 2)
     left = ph_left + col * (ph_w + gap_x)
     top = ph_top + row * (ph_h + gap_y)
 
     ph = slide.shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE, left, top, ph_w, ph_h
     )
-    ph.fill.solid()
-    ph.fill.fore_color.rgb = BG_CARD
-    ph.line.color.rgb = NZ_GREEN_LIGHT
-    ph.line.width = Pt(1.25)
+    ph.fill.solid(); ph.fill.fore_color.rgb = BG_CARD
+    ph.line.color.rgb = NZ_GREEN_LIGHT; ph.line.width = Pt(1.25)
     ph.line.dash_style = 7  # dashed
 
     tf = ph.text_frame
@@ -818,321 +927,231 @@ for idx, label in enumerate(labels):
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.CENTER
     run = p.add_run()
-    run.text = "[ Screenshot ]"
-    run.font.size = Pt(12)
+    run.text = "[ Add screenshot ]"
+    run.font.size = Pt(12); run.font.italic = True
     run.font.color.rgb = NZ_GREEN
-    run.font.italic = True
 
     p2 = tf.add_paragraph()
     p2.alignment = PP_ALIGN.CENTER
     p2.space_before = Pt(4)
     run = p2.add_run()
     run.text = label
-    run.font.bold = True
-    run.font.size = Pt(14)
+    run.font.bold = True; run.font.size = Pt(13)
     run.font.color.rgb = TEXT_DARK
 
 add_speaker_note(
     slide,
-    "In this slide, I would demonstrate the website and show how a user can "
-    "search for a hiking track, check details, view weather, and navigate to "
-    "the destination. (Add screenshots in the placeholders.)"
+    "[~1.5–2 min] LIVE DEMO. Have the app running in another tab/window "
+    "before starting. Follow the seven steps on the left as the demo "
+    "narrative. If anything fails, fall back to the screenshots on the "
+    "right. Practise the demo flow in advance so it stays under 2 minutes."
 )
 
 
 # ---------------------------------------------------------------------------
-# Slide 10 — Challenges & Solutions
+# Slide 9 — Challenges & Solutions
 # ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "Challenges & Solutions")
+slide = base_slide(9, TOTAL_SLIDES)
+add_title(slide, "Challenges & Solutions",
+          subtitle="What we learned along the way")
+add_presenter_tag(slide, "[Member 4]")
 
 challenges = [
-    ("Combining data from multiple sources",
-     "Cleaned and imported data into PostgreSQL with a consistent structure.",
+    ("Data from multiple sources",
+     "Cleaned and unified DOC, LINZ and region data in PostgreSQL.",
      NZ_GREEN),
-    ("Displaying geographic data on a map",
-     "Used map tiles and location data to show tracks, huts, and campsites visually.",
+    ("Showing geographic data on a map",
+     "Used LINZ map tiles and lat/long coordinates for visual display.",
      NZ_SKY),
-    ("Helping users find relevant places quickly",
-     "Added filters, fuzzy search, and nearby search within 15 km.",
+    ("Helping users find places fast",
+     "Added fuzzy search, filters, and 15 km nearby search.",
      NZ_GREEN_LIGHT),
-    ("Improving user planning experience",
-     "Added Google Maps directions, weather forecast, comments, and favourites.",
+    ("Better trip-planning experience",
+     "Added weather, Google Maps links, comments and favourites.",
      NZ_BROWN),
 ]
 
-card_w = Inches(5.9)
-card_h = Inches(2.45)
+card_w = Inches(5.85)
+card_h = Inches(2.4)
 gap_x = Inches(0.25)
-gap_y = Inches(0.2)
+gap_y = Inches(0.25)
 start_left = Inches(0.9)
 start_top = Inches(1.6)
 
 for i, (chal, sol, color) in enumerate(challenges):
-    row = i // 2
-    col = i % 2
+    row, col = divmod(i, 2)
     left = start_left + col * (card_w + gap_x)
     top = start_top + row * (card_h + gap_y)
 
     card = slide.shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE, left, top, card_w, card_h
     )
-    card.fill.solid()
-    card.fill.fore_color.rgb = BG_CARD
-    card.line.color.rgb = color
-    card.line.width = Pt(1.5)
+    card.fill.solid(); card.fill.fore_color.rgb = BG_CARD
+    card.line.color.rgb = color; card.line.width = Pt(1.5)
 
-    # Coloured header strip
     strip = slide.shapes.add_shape(
         MSO_SHAPE.RECTANGLE, left, top, card_w, Inches(0.55)
     )
-    strip.fill.solid()
-    strip.fill.fore_color.rgb = color
+    strip.fill.solid(); strip.fill.fore_color.rgb = color
     strip.line.fill.background()
 
     head_tf = strip.text_frame
-    head_tf.margin_left = Inches(0.2)
-    head_tf.margin_top = Inches(0.05)
+    head_tf.margin_left = Inches(0.2); head_tf.margin_top = Inches(0.07)
     p = head_tf.paragraphs[0]
     run = p.add_run()
-    run.text = f"Challenge {i + 1}: {chal}"
-    run.font.bold = True
-    run.font.size = Pt(14)
+    run.text = f"Challenge {i + 1}:  {chal}"
+    run.font.bold = True; run.font.size = Pt(14)
     run.font.color.rgb = TEXT_LIGHT
 
-    # Solution body
     body = slide.shapes.add_textbox(
-        left + Inches(0.2),
-        top + Inches(0.7),
-        card_w - Inches(0.4),
-        card_h - Inches(0.8),
+        left + Inches(0.2), top + Inches(0.7),
+        card_w - Inches(0.4), card_h - Inches(0.8),
     )
     tf = body.text_frame
     tf.word_wrap = True
     p = tf.paragraphs[0]
     run = p.add_run()
-    run.text = "Solution: "
-    run.font.bold = True
-    run.font.size = Pt(14)
+    run.text = "Solution:  "
+    run.font.bold = True; run.font.size = Pt(14)
     run.font.color.rgb = color
     run2 = p.add_run()
     run2.text = sol
-    run2.font.size = Pt(14)
-    run2.font.color.rgb = TEXT_DARK
+    run2.font.size = Pt(14); run2.font.color.rgb = TEXT_DARK
 
 add_speaker_note(
     slide,
-    "The main challenges were related to data integration, geographic "
-    "display, and user experience. Each feature was designed to make outdoor "
-    "planning easier."
+    "[~45 sec] Don't read every card. Pick the most interesting one or two "
+    "and tell a short story — e.g. 'integrating data from DOC and LINZ was "
+    "tricky because formats and coordinate systems differed; we wrote import "
+    "scripts that normalise everything before inserting into PostgreSQL.'"
 )
 
 
 # ---------------------------------------------------------------------------
-# Slide 11 — Future Improvements
+# Slide 10 — Future Work & Conclusion
 # ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "Future Improvements")
+slide = base_slide(10, TOTAL_SLIDES)
+add_title(slide, "Future Work & Conclusion",
+          subtitle="Where Kiwi Trail can go next")
+add_presenter_tag(slide, "[Member 4]")
 
-improvements = [
-    "Add user login and profile management",
-    "Add trip planning itinerary",
-    "Add offline map support",
-    "Add safety alerts and track condition updates",
-    "Add user-uploaded photos",
-    "Add mobile app version",
-    "Improve recommendation system based on user preferences",
-]
-
-add_bullets(
+# Left: future work
+add_card(
     slide,
-    improvements,
-    left=Inches(0.9), top=Inches(1.7),
-    width=Inches(11.5), height=Inches(5.0),
-    font_size=20,
-)
-
-add_speaker_note(
-    slide,
-    "In the future, Kiwi Trail could become a more complete outdoor planning "
-    "platform with personal trip planning and safety-related features."
-)
-
-
-# ---------------------------------------------------------------------------
-# Slide 12 — Conclusion
-# ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "Conclusion")
-
-intro = slide.shapes.add_textbox(Inches(0.9), Inches(1.45), Inches(11.5), Inches(0.5))
-tf = intro.text_frame
-p = tf.paragraphs[0]
-run = p.add_run()
-run.text = "Kiwi Trail helps users plan outdoor activities in New Zealand by combining:"
-run.font.size = Pt(18)
-run.font.color.rgb = TEXT_DARK
-
-add_bullets(
-    slide,
+    Inches(0.9), Inches(1.6),
+    Inches(6.0), Inches(5.1),
+    "Future Improvements",
     [
-        "Local outdoor datasets",
-        "Interactive maps",
-        "Search and filtering",
-        "Weather information",
-        "Navigation support",
-        "User comments and favourites",
+        "User login & profiles",
+        "Trip planning itinerary",
+        "Offline map support",
+        "Safety alerts & track condition updates",
+        "User-uploaded photos",
+        "Mobile app version",
+        "Personalised recommendations",
     ],
-    left=Inches(0.9), top=Inches(2.1),
-    width=Inches(11.5), height=Inches(3.3),
-    font_size=18,
+    accent_color=NZ_SKY,
+    title_size=18, body_size=15,
 )
 
-# Impact callout
-impact = slide.shapes.add_shape(
+# Right: conclusion / impact
+concl = slide.shapes.add_shape(
     MSO_SHAPE.ROUNDED_RECTANGLE,
-    Inches(0.9), Inches(5.5), Inches(11.5), Inches(1.3),
+    Inches(7.1), Inches(1.6),
+    Inches(5.3), Inches(5.1),
 )
-impact.fill.solid()
-impact.fill.fore_color.rgb = NZ_GREEN
-impact.line.fill.background()
-tf = impact.text_frame
-tf.margin_left = Inches(0.3)
-tf.margin_top = Inches(0.15)
-tf.word_wrap = True
+concl.fill.solid(); concl.fill.fore_color.rgb = NZ_GREEN
+concl.line.fill.background()
+tf = concl.text_frame
+tf.margin_left = Inches(0.3); tf.margin_right = Inches(0.3)
+tf.margin_top = Inches(0.25); tf.word_wrap = True
+
 p = tf.paragraphs[0]
 run = p.add_run()
-run.text = "Impact"
-run.font.bold = True
-run.font.size = Pt(18)
-run.font.color.rgb = TEXT_LIGHT
-p = tf.add_paragraph()
-p.space_before = Pt(4)
+run.text = "Conclusion"
+run.font.bold = True; run.font.size = Pt(22)
+run.font.color.rgb = NZ_GOLD
+
+for line in [
+    "Kiwi Trail brings NZ outdoor data together in one place.",
+    "Search, filter, map, weather, navigation — all in one app.",
+    "Helps both locals and visitors plan trips quickly & safely.",
+]:
+    p = tf.add_paragraph()
+    p.space_before = Pt(10)
+    run = p.add_run()
+    run.text = "•  " + line
+    run.font.size = Pt(16); run.font.color.rgb = TEXT_LIGHT
+
+p = tf.add_paragraph(); p.space_before = Pt(18)
 run = p.add_run()
-run.text = (
-    "Kiwi Trail makes hiking and camping information easier to access, helping "
-    "both locals and visitors explore New Zealand safely and conveniently."
-)
-run.font.size = Pt(16)
-run.font.color.rgb = TEXT_LIGHT
+run.text = "Thank you!"
+run.font.bold = True; run.font.size = Pt(22)
+run.font.color.rgb = NZ_GOLD
 
 add_speaker_note(
     slide,
-    "To conclude, Kiwi Trail is a practical web application that uses local "
-    "New Zealand data to improve the outdoor activity planning experience."
+    "[~45 sec] Summarise the project in 2–3 sentences. Mention 1–2 future "
+    "directions that excite you. End with a warm 'thank you' and invite "
+    "questions from the audience."
 )
 
 
 # ---------------------------------------------------------------------------
-# Slide 13 — Recommended Timing (10 minutes)
+# Slide 11 — Q&A
 # ---------------------------------------------------------------------------
-slide = base_slide()
-add_title(slide, "Recommended Timing — 10 Minutes")
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+add_background(slide, NZ_GREEN)
 
-# Build a simple two-column table-like layout
-timing = [
-    ("Title", "30 sec"),
-    ("Problem Statement", "1 min"),
-    ("Objective", "1 min"),
-    ("Proposed Solution", "1 min"),
-    ("Architecture", "1 min"),
-    ("Workflow", "1 min"),
-    ("Key Features", "1.5 min"),
-    ("Implementation", "1 min"),
-    ("Results / Demo", "1 min"),
-    ("Challenges / Future / Conclusion", "1 min"),
-]
+# Decorative shapes
+c1 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(-1.5), Inches(-1.5),
+                             Inches(4.5), Inches(4.5))
+c1.fill.solid(); c1.fill.fore_color.rgb = NZ_GREEN_LIGHT
+c1.line.fill.background()
+c2 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(10.5), Inches(5),
+                             Inches(5), Inches(5))
+c2.fill.solid(); c2.fill.fore_color.rgb = NZ_BROWN
+c2.line.fill.background()
 
-table_left = Inches(2.5)
-table_top = Inches(1.7)
-col1_w = Inches(6.0)
-col2_w = Inches(2.3)
-row_h = Inches(0.45)
-
-# Header
-header_slide_col1 = slide.shapes.add_shape(
-    MSO_SHAPE.RECTANGLE, table_left, table_top, col1_w, row_h
-)
-header_slide_col1.fill.solid()
-header_slide_col1.fill.fore_color.rgb = NZ_GREEN
-header_slide_col1.line.fill.background()
-tf = header_slide_col1.text_frame
-tf.margin_left = Inches(0.2)
+# Big "?"
+qmark = slide.shapes.add_textbox(Inches(0.8), Inches(1.0),
+                                   Inches(12), Inches(3.5))
+tf = qmark.text_frame
 p = tf.paragraphs[0]
-p.alignment = PP_ALIGN.LEFT
+p.alignment = PP_ALIGN.CENTER
 run = p.add_run()
-run.text = "Slide"
-run.font.bold = True
-run.font.size = Pt(16)
+run.text = "Q & A"
+run.font.size = Pt(120); run.font.bold = True
 run.font.color.rgb = TEXT_LIGHT
 
-header_time_col2 = slide.shapes.add_shape(
-    MSO_SHAPE.RECTANGLE, table_left + col1_w, table_top, col2_w, row_h
-)
-header_time_col2.fill.solid()
-header_time_col2.fill.fore_color.rgb = NZ_GREEN
-header_time_col2.line.fill.background()
-tf = header_time_col2.text_frame
-tf.margin_left = Inches(0.2)
+# Subtitle
+sub = slide.shapes.add_textbox(Inches(0.8), Inches(4.4),
+                                 Inches(12), Inches(1.0))
+tf = sub.text_frame
 p = tf.paragraphs[0]
+p.alignment = PP_ALIGN.CENTER
 run = p.add_run()
-run.text = "Time"
-run.font.bold = True
-run.font.size = Pt(16)
+run.text = "We'd love to hear your questions and feedback."
+run.font.size = Pt(22); run.font.italic = True
 run.font.color.rgb = TEXT_LIGHT
 
-for i, (slide_name, time) in enumerate(timing):
-    y = table_top + row_h * (i + 1)
-    fill_color = BG_CARD if i % 2 == 0 else RGBColor(0xEC, 0xF4, 0xE6)
-
-    c1 = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, table_left, y, col1_w, row_h)
-    c1.fill.solid()
-    c1.fill.fore_color.rgb = fill_color
-    c1.line.color.rgb = RGBColor(0xDD, 0xDD, 0xDD)
-    c1.line.width = Pt(0.5)
-    tf = c1.text_frame
-    tf.margin_left = Inches(0.2)
-    p = tf.paragraphs[0]
-    run = p.add_run()
-    run.text = slide_name
-    run.font.size = Pt(14)
-    run.font.color.rgb = TEXT_DARK
-
-    c2 = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, table_left + col1_w, y, col2_w, row_h)
-    c2.fill.solid()
-    c2.fill.fore_color.rgb = fill_color
-    c2.line.color.rgb = RGBColor(0xDD, 0xDD, 0xDD)
-    c2.line.width = Pt(0.5)
-    tf = c2.text_frame
-    tf.margin_left = Inches(0.2)
-    p = tf.paragraphs[0]
-    run = p.add_run()
-    run.text = time
-    run.font.size = Pt(14)
-    run.font.bold = True
-    run.font.color.rgb = NZ_GREEN
-
-# Total row
-total_y = table_top + row_h * (len(timing) + 1)
-total = slide.shapes.add_shape(
-    MSO_SHAPE.RECTANGLE, table_left, total_y, col1_w + col2_w, row_h
-)
-total.fill.solid()
-total.fill.fore_color.rgb = NZ_GREEN_LIGHT
-total.line.fill.background()
-tf = total.text_frame
-tf.margin_left = Inches(0.2)
+# Project tag
+tag = slide.shapes.add_textbox(Inches(0.8), Inches(5.4),
+                                 Inches(12), Inches(0.6))
+tf = tag.text_frame
 p = tf.paragraphs[0]
+p.alignment = PP_ALIGN.CENTER
 run = p.add_run()
-run.text = "Total: approximately 10 minutes"
-run.font.bold = True
-run.font.size = Pt(15)
-run.font.color.rgb = TEXT_LIGHT
+run.text = "Kiwi Trail  •  570 Programming Project"
+run.font.size = Pt(16); run.font.bold = True
+run.font.color.rgb = NZ_GOLD
 
 add_speaker_note(
     slide,
-    "Suggested timing for a 10 minute presentation. Adjust as needed depending "
-    "on questions or demo length."
+    "[Remaining time / discussion] Open the floor for questions. Be ready "
+    "to answer about: tech stack choices, data sources, how nearby search "
+    "works, scalability, and future plans. If you don't know an answer, "
+    "say so honestly and offer to follow up."
 )
 
 
@@ -1142,3 +1161,4 @@ add_speaker_note(
 output_path = "Kiwi_Trail_Presentation.pptx"
 prs.save(output_path)
 print(f"Saved presentation to {output_path}")
+print(f"Total slides: {len(prs.slides)}")

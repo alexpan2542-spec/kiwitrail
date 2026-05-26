@@ -28,6 +28,35 @@ import GazetteerResultsModal, {
   type GazetteerSearchHit,
 } from "../components/home/GazetteerResultsModal";
 import { HomeAuthProvider } from "../contexts/HomeAuthContext";
+import Track3DModal from "../components/track/Track3DModal";
+import type { Track3DRoute } from "../components/track/Track3DModal";
+
+type TrackRouteApiResponse = {
+  id: number;
+  name: string;
+  route_no: number;
+  length_m: number;
+  elev_min: number;
+  elev_max: number;
+  elevations: number[] | null;
+  geojson: {
+    geometry?: { type: string; coordinates: [number, number][] };
+  };
+};
+
+function toTrack3DRoutes(rows: TrackRouteApiResponse[]): Track3DRoute[] {
+  return rows.map((row, index) => ({
+    id: row.id,
+    name: row.name,
+    seq: index,
+    route_no: row.route_no,
+    length_m: row.length_m,
+    elev_min: row.elev_min,
+    elev_max: row.elev_max,
+    elevations: row.elevations ?? [],
+    coordinates: row.geojson?.geometry?.coordinates ?? [],
+  }));
+}
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -272,6 +301,34 @@ export default function HomePage2() {
   const [weatherEmbedUrl, setWeatherEmbedUrl] = useState<string | null>(null);
   /** Same slot as weather side panel; mutually exclusive with `weatherEmbedUrl` when open. */
   const [commentsOpen, setCommentsOpen] = useState(false);
+
+  /** 3D viewer modal state — lazily fetched on first open per selected track. */
+  const [track3DOpen, setTrack3DOpen] = useState(false);
+  const [track3DLoading, setTrack3DLoading] = useState(false);
+  const [track3DName, setTrack3DName] = useState("");
+  const [track3DRoutes, setTrack3DRoutes] = useState<Track3DRoute[]>([]);
+
+  const handleOpen3DView = useCallback(
+    async (item: MapItem) => {
+      if (item.type !== "track") return;
+      setTrack3DLoading(true);
+      try {
+        const res = await fetch(`${backendUrl}/track-routes/${item.id}`);
+        if (!res.ok) {
+          throw new Error(`Track routes HTTP ${res.status}`);
+        }
+        const data = (await res.json()) as TrackRouteApiResponse[];
+        setTrack3DRoutes(toTrack3DRoutes(data));
+        setTrack3DName(item.name);
+        setTrack3DOpen(true);
+      } catch (err) {
+        console.error("Failed to load track routes for 3D view:", err);
+      } finally {
+        setTrack3DLoading(false);
+      }
+    },
+    [],
+  );
 
   const handleRegionChange = async (
     event: React.ChangeEvent<HTMLSelectElement>,
@@ -813,6 +870,10 @@ export default function HomePage2() {
                 return true;
               });
             }}
+            on3DClick={() => {
+              void handleOpen3DView(selectedItem);
+            }}
+            is3DLoading={track3DLoading}
           />
         )}
         {weatherEmbedUrl && !commentsOpen && (
@@ -837,6 +898,12 @@ export default function HomePage2() {
           query={gazetteerQuery}
           isLoading={isLoading}
           onLoadItemsOnMap={loadItemsInGazetteerCircle}
+        />
+        <Track3DModal
+          open={track3DOpen}
+          onClose={() => setTrack3DOpen(false)}
+          trackName={track3DName}
+          routes={track3DRoutes}
         />
       </div>
     </HomeAuthProvider>

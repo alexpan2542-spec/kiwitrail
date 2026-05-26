@@ -78,6 +78,27 @@ function IconChat() {
   );
 }
 
+function Icon3DCube() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="22"
+      height="22"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      viewBox="0 0 24 24"
+      aria-hidden
+    >
+      <path d="M12 3 3 7.5v9L12 21l9-4.5v-9L12 3z" />
+      <path d="M3 7.5 12 12l9-4.5" />
+      <path d="M12 12v9" />
+    </svg>
+  );
+}
+
 function IconHeartOutline() {
   return (
     <svg
@@ -159,6 +180,10 @@ export type HomeSelectedItemPanelProps = {
   /** Called with embed URL when Weather is clicked (track `weather_url` or station `source_page_url`). */
   onWeatherClick?: (embedUrl: string) => void;
   onCommentsClick?: () => void;
+  /** Called when the 3D action is clicked; only rendered for items of type `track`. */
+  on3DClick?: () => void;
+  /** When true the 3D action is shown in a loading state and disabled. */
+  is3DLoading?: boolean;
 };
 
 /**
@@ -181,6 +206,8 @@ export default function HomeSelectedItemPanel({
   onDirectionsClick,
   onWeatherClick,
   onCommentsClick,
+  on3DClick,
+  is3DLoading = false,
 }: HomeSelectedItemPanelProps) {
   const { user, requestSignIn } = useHomeAuth();
   const [favouriteOn, setFavouriteOn] = useState(false);
@@ -408,6 +435,16 @@ export default function HomeSelectedItemPanel({
             >
               <IconChat />
             </GmapsStyleAction>
+            {item.type === "track" && (
+              <GmapsStyleAction
+                label={is3DLoading ? "Loading…" : "3D View"}
+                ariaLabel="Open 3D track view"
+                disabled={is3DLoading}
+                onClick={() => on3DClick?.()}
+              >
+                <Icon3DCube />
+              </GmapsStyleAction>
+            )}
             <GmapsStyleAction
               label="Favourite"
               ariaLabel={

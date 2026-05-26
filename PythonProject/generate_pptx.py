@@ -4,11 +4,21 @@ Designed for a 7–8 minute group project presentation, following the rubric:
 content (clarity, organisation, depth), delivery, time management, and Q&A.
 """
 
+import os
+
 from pptx import Presentation
-from pptx.util import Inches, Pt
+from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import PP_ALIGN
+
+
+# Paths to real screenshots (relative to repository root)
+ASSETS_DIR = os.path.join(os.path.dirname(__file__), "..", "assets")
+SHOT_HOME = os.path.join(ASSETS_DIR, "homepage.png")
+SHOT_REGION = os.path.join(ASSETS_DIR, "search-waikato.png")
+SHOT_DETAIL = os.path.join(ASSETS_DIR, "search.png")
+SHOT_ELEVATION = os.path.join(ASSETS_DIR, "route-elevation.png")
 
 
 # Kiwi-inspired colour palette
@@ -248,6 +258,63 @@ def add_card(slide, left, top, width, height, title, items,
     return card
 
 
+def add_picture_with_caption(slide, image_path, left, top, width, height,
+                              caption=None, fig_label=None,
+                              border_color=NZ_GREEN):
+    """Insert an image inside a rounded card, with optional caption below."""
+    # Card background behind the image
+    card = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height
+    )
+    card.fill.solid(); card.fill.fore_color.rgb = BG_CARD
+    card.line.color.rgb = border_color; card.line.width = Pt(1.25)
+
+    img_area_h = height
+    cap_h = Inches(0)
+    if caption:
+        cap_h = Inches(0.85)
+        img_area_h = height - cap_h - Inches(0.1)
+
+    # Insert image, sized to fit inside the card with small padding
+    pad = Inches(0.1)
+    pic_left = left + pad
+    pic_top = top + pad
+    pic_w = width - 2 * pad
+    pic_h = img_area_h - 2 * pad
+    slide.shapes.add_picture(image_path, pic_left, pic_top, pic_w, pic_h)
+
+    if caption:
+        cap_box = slide.shapes.add_textbox(
+            left + Inches(0.15),
+            top + img_area_h,
+            width - Inches(0.3),
+            cap_h,
+        )
+        tf = cap_box.text_frame
+        tf.word_wrap = True
+        tf.margin_top = Inches(0.02)
+
+        if fig_label:
+            p = tf.paragraphs[0]
+            p.alignment = PP_ALIGN.LEFT
+            run = p.add_run()
+            run.text = fig_label + " "
+            run.font.bold = True
+            run.font.size = Pt(11)
+            run.font.color.rgb = NZ_GREEN
+            run2 = p.add_run()
+            run2.text = caption
+            run2.font.size = Pt(11)
+            run2.font.color.rgb = TEXT_MUTED
+        else:
+            p = tf.paragraphs[0]
+            run = p.add_run()
+            run.text = caption
+            run.font.size = Pt(11)
+            run.font.italic = True
+            run.font.color.rgb = TEXT_MUTED
+
+
 def base_slide(page_num, total_pages):
     slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank
     add_background(slide, BG_LIGHT)
@@ -266,8 +333,9 @@ prs.slide_width = Inches(13.333)
 prs.slide_height = Inches(7.5)
 
 
-TOTAL_SLIDES = 11   # title, problem, objective, solution, architecture,
-                     # features, implementation, demo, challenges, future + conclusion, Q&A
+TOTAL_SLIDES = 12   # title, problem, objective, solution, architecture,
+                     # features, implementation, demo (home), demo (results),
+                     # challenges, future + conclusion, Q&A
 
 
 # ---------------------------------------------------------------------------
@@ -512,70 +580,82 @@ add_title(slide, "Proposed Solution",
           subtitle="A map-based web app with planning tools")
 add_presenter_tag(slide, "[Member 2]")
 
-left_items = [
-    "Select a region",
-    "Filter by difficulty",
-    "Filter tracks / huts / campsites",
-    "Fuzzy search by name",
-    "Nearby results within 15 km",
-]
-right_items = [
-    "View item details",
-    "Open Google Maps directions",
-    "View weather forecast",
-    "Save favourite places",
-    "Add comments",
-]
+# Left: home-page screenshot as a visual hook
+add_picture_with_caption(
+    slide,
+    SHOT_HOME,
+    left=Inches(0.9), top=Inches(1.6),
+    width=Inches(6.5), height=Inches(5.1),
+    fig_label="Preview.",
+    caption=("KiwiTrail home page — search panel on the left, "
+             "interactive map of New Zealand on the right."),
+    border_color=NZ_GREEN_LIGHT,
+)
 
-# Left list
+# Right: two stacked feature lists
+list_w = Inches(5.0)
+list_h = Inches(2.45)
+list_left = Inches(7.6)
+list_top1 = Inches(1.6)
+list_top2 = Inches(4.25)
+
+# Discover
 list_box = slide.shapes.add_shape(
     MSO_SHAPE.ROUNDED_RECTANGLE,
-    Inches(0.9), Inches(1.6), Inches(5.9), Inches(5.1),
+    list_left, list_top1, list_w, list_h,
 )
 list_box.fill.solid(); list_box.fill.fore_color.rgb = BG_CARD
 list_box.line.color.rgb = NZ_GREEN_LIGHT; list_box.line.width = Pt(1.25)
 
 head = slide.shapes.add_shape(
-    MSO_SHAPE.RECTANGLE, Inches(0.9), Inches(1.6),
-    Inches(5.9), Inches(0.5),
+    MSO_SHAPE.RECTANGLE, list_left, list_top1, list_w, Inches(0.45),
 )
 head.fill.solid(); head.fill.fore_color.rgb = NZ_GREEN_LIGHT
 head.line.fill.background()
-tf = head.text_frame; tf.margin_left = Inches(0.2); tf.margin_top = Inches(0.07)
+tf = head.text_frame; tf.margin_left = Inches(0.2); tf.margin_top = Inches(0.05)
 p = tf.paragraphs[0]
 run = p.add_run()
 run.text = "Discover places"
-run.font.bold = True; run.font.size = Pt(16)
+run.font.bold = True; run.font.size = Pt(15)
 run.font.color.rgb = TEXT_LIGHT
 
-add_bullets(slide, left_items,
-            left=Inches(1.1), top=Inches(2.3),
-            width=Inches(5.5), height=Inches(4.0), font_size=17, spacing=6)
+add_bullets(slide,
+            ["Select region & difficulty",
+             "Filter track / hut / campsite",
+             "Fuzzy place-name search",
+             "Nearby within 15 km"],
+            left=list_left + Inches(0.15), top=list_top1 + Inches(0.55),
+            width=list_w - Inches(0.3), height=Inches(1.8),
+            font_size=13, spacing=4)
 
-# Right list
+# Plan
 list_box = slide.shapes.add_shape(
     MSO_SHAPE.ROUNDED_RECTANGLE,
-    Inches(7.0), Inches(1.6), Inches(5.4), Inches(5.1),
+    list_left, list_top2, list_w, list_h,
 )
 list_box.fill.solid(); list_box.fill.fore_color.rgb = BG_CARD
 list_box.line.color.rgb = NZ_SKY; list_box.line.width = Pt(1.25)
 
 head = slide.shapes.add_shape(
-    MSO_SHAPE.RECTANGLE, Inches(7.0), Inches(1.6),
-    Inches(5.4), Inches(0.5),
+    MSO_SHAPE.RECTANGLE, list_left, list_top2, list_w, Inches(0.45),
 )
 head.fill.solid(); head.fill.fore_color.rgb = NZ_SKY
 head.line.fill.background()
-tf = head.text_frame; tf.margin_left = Inches(0.2); tf.margin_top = Inches(0.07)
+tf = head.text_frame; tf.margin_left = Inches(0.2); tf.margin_top = Inches(0.05)
 p = tf.paragraphs[0]
 run = p.add_run()
 run.text = "Plan your trip"
-run.font.bold = True; run.font.size = Pt(16)
+run.font.bold = True; run.font.size = Pt(15)
 run.font.color.rgb = TEXT_LIGHT
 
-add_bullets(slide, right_items,
-            left=Inches(7.2), top=Inches(2.3),
-            width=Inches(5.0), height=Inches(4.0), font_size=17, spacing=6)
+add_bullets(slide,
+            ["View item details",
+             "Open Google Maps directions",
+             "View NIWA weather",
+             "Save favourites & comments"],
+            left=list_left + Inches(0.15), top=list_top2 + Inches(0.55),
+            width=list_w - Inches(0.3), height=Inches(1.8),
+            font_size=13, spacing=4)
 
 add_speaker_note(
     slide,
@@ -836,122 +916,156 @@ add_speaker_note(
 
 
 # ---------------------------------------------------------------------------
-# Slide 8 — Demo
+# Slide 8 — Demo (Home page)
 # ---------------------------------------------------------------------------
 slide = base_slide(8, TOTAL_SLIDES)
-add_title(slide, "Live Demo", subtitle="Walkthrough of Kiwi Trail")
+add_title(slide, "Demo — Home Page", subtitle="Search panel + region map")
 add_presenter_tag(slide, "[Member 4]")
 
-# Left: demo flow
-flow_steps = [
-    "Open the home page",
-    "Select a region (e.g. Auckland)",
-    "Filter by track + difficulty",
-    "Use fuzzy search for a place",
-    "Open a track's detail page",
-    "View weather + Google Maps link",
-    "Add to favourites / leave a comment",
-]
-flow_card = slide.shapes.add_shape(
-    MSO_SHAPE.ROUNDED_RECTANGLE,
-    Inches(0.9), Inches(1.6),
-    Inches(5.4), Inches(5.1),
+# Big screenshot on the left
+add_picture_with_caption(
+    slide,
+    SHOT_REGION,
+    left=Inches(0.9), top=Inches(1.6),
+    width=Inches(8.0), height=Inches(5.1),
+    fig_label="Figure 1.",
+    caption=("The KiwiTrail home page and search panel. Users choose a region, "
+             "set the track difficulty, pick the item types (tracks, huts, "
+             "campsites, weather stations) and optionally use a fuzzy search."),
+    border_color=NZ_GREEN,
 )
-flow_card.fill.solid(); flow_card.fill.fore_color.rgb = BG_CARD
-flow_card.line.color.rgb = NZ_GREEN; flow_card.line.width = Pt(1.25)
 
-head = slide.shapes.add_shape(
-    MSO_SHAPE.RECTANGLE, Inches(0.9), Inches(1.6),
-    Inches(5.4), Inches(0.5),
+# Right: explanation of what's on screen
+add_card(
+    slide,
+    Inches(9.1), Inches(1.6),
+    Inches(3.3), Inches(5.1),
+    "Search panel features",
+    [
+        "Region selector",
+        "Track difficulty filter",
+        "Type filter — tracks, huts, campsites, weather stations",
+        "Fuzzy place-name search",
+        "Region boundary drawn on the map",
+        "Live latitude / longitude readout",
+    ],
+    accent_color=NZ_GREEN_LIGHT,
+    title_size=16, body_size=13,
 )
-head.fill.solid(); head.fill.fore_color.rgb = NZ_GREEN
-head.line.fill.background()
-tf = head.text_frame; tf.margin_left = Inches(0.2); tf.margin_top = Inches(0.07)
-p = tf.paragraphs[0]
-run = p.add_run()
-run.text = "Demo Flow"
-run.font.bold = True; run.font.size = Pt(16)
-run.font.color.rgb = TEXT_LIGHT
-
-# Numbered list
-list_box = slide.shapes.add_textbox(
-    Inches(1.05), Inches(2.25),
-    Inches(5.2), Inches(4.4),
-)
-tf = list_box.text_frame
-tf.word_wrap = True
-for i, step in enumerate(flow_steps):
-    p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
-    p.alignment = PP_ALIGN.LEFT
-    p.space_after = Pt(8)
-    num_run = p.add_run()
-    num_run.text = f"{i+1}.  "
-    num_run.font.size = Pt(16); num_run.font.bold = True
-    num_run.font.color.rgb = NZ_GREEN
-    txt_run = p.add_run()
-    txt_run.text = step
-    txt_run.font.size = Pt(16)
-    txt_run.font.color.rgb = TEXT_DARK
-
-# Right: screenshot placeholder grid
-ph_left = Inches(6.6)
-ph_top = Inches(1.6)
-ph_w = Inches(3.2)
-ph_h = Inches(1.55)
-gap_x = Inches(0.2)
-gap_y = Inches(0.2)
-
-screenshot_labels = [
-    "Home page",
-    "Map view",
-    "Search / filter",
-    "Detail page",
-    "Weather + directions",
-    "Favourites / comments",
-]
-
-for idx, label in enumerate(screenshot_labels):
-    row, col = divmod(idx, 2)
-    left = ph_left + col * (ph_w + gap_x)
-    top = ph_top + row * (ph_h + gap_y)
-
-    ph = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE, left, top, ph_w, ph_h
-    )
-    ph.fill.solid(); ph.fill.fore_color.rgb = BG_CARD
-    ph.line.color.rgb = NZ_GREEN_LIGHT; ph.line.width = Pt(1.25)
-    ph.line.dash_style = 7  # dashed
-
-    tf = ph.text_frame
-    tf.word_wrap = True
-    p = tf.paragraphs[0]
-    p.alignment = PP_ALIGN.CENTER
-    run = p.add_run()
-    run.text = "[ Add screenshot ]"
-    run.font.size = Pt(12); run.font.italic = True
-    run.font.color.rgb = NZ_GREEN
-
-    p2 = tf.add_paragraph()
-    p2.alignment = PP_ALIGN.CENTER
-    p2.space_before = Pt(4)
-    run = p2.add_run()
-    run.text = label
-    run.font.bold = True; run.font.size = Pt(13)
-    run.font.color.rgb = TEXT_DARK
 
 add_speaker_note(
     slide,
-    "[~1.5–2 min] LIVE DEMO. Have the app running in another tab/window "
-    "before starting. Follow the seven steps on the left as the demo "
-    "narrative. If anything fails, fall back to the screenshots on the "
-    "right. Practise the demo flow in advance so it stays under 2 minutes."
+    "[~45–60 sec] Open the demo with the home page. Walk through the search "
+    "panel: pick a region (e.g. Waikato), choose difficulty, tick the item "
+    "types you want, and optionally type a rough place name in fuzzy search. "
+    "Point out that the map highlights the selected region's boundary so the "
+    "user immediately sees the area they will explore."
 )
 
 
 # ---------------------------------------------------------------------------
-# Slide 9 — Challenges & Solutions
+# Slide 9 — Demo (Search result + 3D elevation)
 # ---------------------------------------------------------------------------
 slide = base_slide(9, TOTAL_SLIDES)
+add_title(slide, "Demo — Search Result",
+          subtitle="Track on map, detail panel, 3D elevation")
+add_presenter_tag(slide, "[Member 4]")
+
+# Top-left: track on map + detail panel screenshot
+add_picture_with_caption(
+    slide,
+    SHOT_DETAIL,
+    left=Inches(0.9), top=Inches(1.55),
+    width=Inches(6.0), height=Inches(3.6),
+    fig_label="Figure 2a.",
+    caption=("Track shown on the 2D map with the detail panel: photo, "
+             "description, difficulty, duration, type, and 'Track Details' link."),
+    border_color=NZ_SKY,
+)
+
+# Top-right: elevation screenshot
+add_picture_with_caption(
+    slide,
+    SHOT_ELEVATION,
+    left=Inches(7.1), top=Inches(1.55),
+    width=Inches(5.3), height=Inches(3.6),
+    fig_label="Figure 2b.",
+    caption=("Route view with elevation profile — distance vs. elevation "
+             "for the selected track (route 9 / 12, length 9329 m)."),
+    border_color=NZ_GREEN,
+)
+
+# Bottom: action panel summary
+actions = [
+    ("Directions", "Open in Google Maps", NZ_SKY),
+    ("Weather", "NIWA forecast widget", NZ_GREEN_LIGHT),
+    ("Comments", "Read & post comments", NZ_BROWN),
+    ("Favourites", "Save for later", NZ_GOLD),
+]
+btn_w = Inches(2.85)
+btn_h = Inches(1.4)
+btn_gap = Inches(0.15)
+btn_top = Inches(5.3)
+btn_start_left = Inches(0.9)
+for i, (label, desc, color) in enumerate(actions):
+    left = btn_start_left + i * (btn_w + btn_gap)
+    btn = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, left, btn_top, btn_w, btn_h
+    )
+    btn.fill.solid(); btn.fill.fore_color.rgb = BG_CARD
+    btn.line.color.rgb = color; btn.line.width = Pt(1.5)
+
+    bar = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, left, btn_top, btn_w, Inches(0.4)
+    )
+    bar.fill.solid(); bar.fill.fore_color.rgb = color
+    bar.line.fill.background()
+    tf = bar.text_frame
+    tf.margin_left = Inches(0.15); tf.margin_top = Inches(0.05)
+    p = tf.paragraphs[0]
+    run = p.add_run()
+    run.text = label
+    run.font.bold = True; run.font.size = Pt(14)
+    run.font.color.rgb = TEXT_LIGHT
+
+    body = slide.shapes.add_textbox(
+        left + Inches(0.15), btn_top + Inches(0.5),
+        btn_w - Inches(0.3), btn_h - Inches(0.55),
+    )
+    tf = body.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    run = p.add_run()
+    run.text = desc
+    run.font.size = Pt(12); run.font.color.rgb = TEXT_DARK
+
+# Footer caption for action row
+cap = slide.shapes.add_textbox(
+    Inches(0.9), Inches(6.75), Inches(11.5), Inches(0.3)
+)
+tf = cap.text_frame
+p = tf.paragraphs[0]
+run = p.add_run()
+run.text = ("Detail panel actions — Directions, Weather, Comments, "
+            "and Favourites — for each selected track.")
+run.font.size = Pt(11); run.font.italic = True
+run.font.color.rgb = TEXT_MUTED
+
+add_speaker_note(
+    slide,
+    "[~60–75 sec] Pick a track on the map (e.g. Karioi Track or North-South "
+    "Track). Show the detail panel: photo, description, difficulty, duration, "
+    "type, and the 'View Official Details' link. Then open the 3D elevation "
+    "view to show distance-vs-elevation. Finish by demonstrating the four "
+    "action buttons: Directions (Google Maps), Weather (NIWA), Comments, "
+    "and Favourites."
+)
+
+
+# ---------------------------------------------------------------------------
+# Slide 10 — Challenges & Solutions
+# ---------------------------------------------------------------------------
+slide = base_slide(10, TOTAL_SLIDES)
 add_title(slide, "Challenges & Solutions",
           subtitle="What we learned along the way")
 add_presenter_tag(slide, "[Member 4]")
@@ -1028,9 +1142,9 @@ add_speaker_note(
 
 
 # ---------------------------------------------------------------------------
-# Slide 10 — Future Work & Conclusion
+# Slide 11 — Future Work & Conclusion
 # ---------------------------------------------------------------------------
-slide = base_slide(10, TOTAL_SLIDES)
+slide = base_slide(11, TOTAL_SLIDES)
 add_title(slide, "Future Work & Conclusion",
           subtitle="Where Kiwi Trail can go next")
 add_presenter_tag(slide, "[Member 4]")
@@ -1098,7 +1212,7 @@ add_speaker_note(
 
 
 # ---------------------------------------------------------------------------
-# Slide 11 — Q&A
+# Slide 12 — Q&A
 # ---------------------------------------------------------------------------
 slide = prs.slides.add_slide(prs.slide_layouts[6])
 add_background(slide, NZ_GREEN)

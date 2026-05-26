@@ -218,10 +218,15 @@ export default function Track3DModal({
     controls.dampingFactor = 0.08;
     controls.screenSpacePanning = true;
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
-    dirLight.position.set(1, 1, 1);
-    scene.add(dirLight);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.1);
+    keyLight.position.set(1, 1.5, 0.6);
+    scene.add(keyLight);
+    const rimLight = new THREE.DirectionalLight(0x9ec5ff, 0.45);
+    rimLight.position.set(-1.2, 0.8, -0.8);
+    scene.add(rimLight);
+    const hemiLight = new THREE.HemisphereLight(0xb0c8e2, 0x1a2435, 0.45);
+    scene.add(hemiLight);
 
     const trackGroup = new THREE.Group();
     scene.add(trackGroup);
@@ -346,62 +351,108 @@ export default function Track3DModal({
 
     const baseY = globalElevMin * verticalExaggeration;
     const tmpColor = new THREE.Color();
+    const highlightColor = new THREE.Color(0xff3da6);
+
+    const tubeRadius = Math.max(horizontalExtent * 0.005, 25);
+    const dropStride = 12;
 
     projected.forEach((route) => {
       const isHighlighted =
         highlightRouteKey != null && route.key === highlightRouteKey;
+      const dimOthers = highlightRouteKey != null && !isHighlighted;
 
-      const positions = new Float32Array(route.positions.length);
-      const colors = new Float32Array(route.positions.length);
+      const vertexCount = route.positions.length / 3;
+      if (vertexCount < 2) return;
 
-      for (let i = 0; i < route.positions.length; i += 3) {
-        positions[i] = route.positions[i];
-        positions[i + 1] = route.positions[i + 1] * verticalExaggeration;
-        positions[i + 2] = route.positions[i + 2];
-
-        colorForElevation(
-          route.positions[i + 1],
-          globalElevMin,
-          globalElevMax,
-          tmpColor,
+      const curvePoints: THREE.Vector3[] = new Array(vertexCount);
+      const origElevations: number[] = new Array(vertexCount);
+      for (let i = 0; i < vertexCount; i++) {
+        const x = route.positions[i * 3 + 0];
+        const yOrig = route.positions[i * 3 + 1];
+        const z = route.positions[i * 3 + 2];
+        curvePoints[i] = new THREE.Vector3(
+          x,
+          yOrig * verticalExaggeration,
+          z,
         );
-        if (isHighlighted) {
-          tmpColor.lerp(new THREE.Color(0xff3da6), 0.55);
-        }
-        colors[i] = tmpColor.r;
-        colors[i + 1] = tmpColor.g;
-        colors[i + 2] = tmpColor.b;
+        origElevations[i] = yOrig;
       }
 
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute(
-        "position",
-        new THREE.BufferAttribute(positions, 3),
+      const curve = new THREE.CatmullRomCurve3(curvePoints, false, "catmullrom", 0.5);
+      const tubularSegments = Math.max(60, vertexCount * 2);
+      const radialSegments = 8;
+      const tubeRadiusForRoute = isHighlighted
+        ? tubeRadius * 1.6
+        : tubeRadius;
+
+      const tubeGeo = new THREE.TubeGeometry(
+        curve,
+        tubularSegments,
+        tubeRadiusForRoute,
+        radialSegments,
+        false,
       );
-      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
-      const material = new THREE.LineBasicMaterial({
+      const positionCount = tubeGeo.attributes.position.count;
+      const colors = new Float32Array(positionCount * 3);
+      const ringStride = radialSegments + 1;
+      const ringCount = positionCount / ringStride;
+
+      for (let t = 0; t < ringCount; t++) {
+        const u = ringCount === 1 ? 0 : t / (ringCount - 1);
+        const f = u * (vertexCount - 1);
+        const i0 = Math.floor(f);
+        const i1 = Math.min(vertexCount - 1, i0 + 1);
+        const frac = f - i0;
+        const elev =
+          origElevations[i0] * (1 - frac) + origElevations[i1] * frac;
+        colorForElevation(elev, globalElevMin, globalElevMax, tmpColor);
+        if (isHighlighted) {
+          tmpColor.lerp(highlightColor, 0.5);
+        }
+        const r = tmpColor.r;
+        const g = tmpColor.g;
+        const b = tmpColor.b;
+        for (let k = 0; k < ringStride; k++) {
+          const idx = (t * ringStride + k) * 3;
+          colors[idx + 0] = r;
+          colors[idx + 1] = g;
+          colors[idx + 2] = b;
+        }
+      }
+
+      tubeGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+      const tubeMat = new THREE.MeshStandardMaterial({
         vertexColors: true,
-        linewidth: isHighlighted ? 3 : 1,
-        transparent: !isHighlighted && highlightRouteKey != null,
-        opacity: !isHighlighted && highlightRouteKey != null ? 0.55 : 1,
+        metalness: 0.05,
+        roughness: 0.55,
+        transparent: dimOthers,
+        opacity: dimOthers ? 0.6 : 1,
       });
+      const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+      trackGroup.add(tubeMesh);
 
-      const line = new THREE.Line(geometry, material);
-      trackGroup.add(line);
-
-      const dropPositions = new Float32Array(route.positions.length / 3 * 6);
-      for (
-        let i = 0, j = 0;
-        i < route.positions.length;
-        i += 3, j += 6
-      ) {
-        dropPositions[j + 0] = route.positions[i];
-        dropPositions[j + 1] = route.positions[i + 1] * verticalExaggeration;
-        dropPositions[j + 2] = route.positions[i + 2];
-        dropPositions[j + 3] = route.positions[i];
+      const dropSampleCount = Math.max(
+        2,
+        Math.floor(vertexCount / dropStride),
+      );
+      const dropPositions = new Float32Array(dropSampleCount * 6);
+      for (let s = 0; s < dropSampleCount; s++) {
+        const i =
+          dropSampleCount === 1
+            ? 0
+            : Math.round((s / (dropSampleCount - 1)) * (vertexCount - 1));
+        const x = route.positions[i * 3 + 0];
+        const yLifted = route.positions[i * 3 + 1] * verticalExaggeration;
+        const z = route.positions[i * 3 + 2];
+        const j = s * 6;
+        dropPositions[j + 0] = x;
+        dropPositions[j + 1] = yLifted;
+        dropPositions[j + 2] = z;
+        dropPositions[j + 3] = x;
         dropPositions[j + 4] = baseY;
-        dropPositions[j + 5] = route.positions[i + 2];
+        dropPositions[j + 5] = z;
       }
       const dropGeom = new THREE.BufferGeometry();
       dropGeom.setAttribute(
@@ -409,16 +460,16 @@ export default function Track3DModal({
         new THREE.BufferAttribute(dropPositions, 3),
       );
       const dropMat = new THREE.LineBasicMaterial({
-        color: 0x4a6079,
+        color: 0x6e89a8,
         transparent: true,
-        opacity: 0.18,
+        opacity: dimOthers ? 0.12 : 0.28,
       });
       const dropLines = new THREE.LineSegments(dropGeom, dropMat);
       trackGroup.add(dropLines);
     });
 
-    const gridSize = Math.max(horizontalExtent * 1.6, 1000);
-    const gridDivisions = 20;
+    const gridSize = Math.max(horizontalExtent * 1.25, 1000);
+    const gridDivisions = 16;
     const grid = new THREE.GridHelper(
       gridSize,
       gridDivisions,
@@ -444,13 +495,13 @@ export default function Track3DModal({
 
     const elevSpan =
       (globalElevMax - globalElevMin) * verticalExaggeration || 1;
-    const cameraDistance = horizontalExtent * 1.4 + elevSpan * 1.5;
+    const cameraDistance = horizontalExtent * 1.0 + elevSpan * 1.0;
     refs.camera.position.set(
-      cameraDistance * 0.7,
-      baseY + elevSpan * 1.4 + horizontalExtent * 0.6,
-      cameraDistance,
+      cameraDistance * 0.9,
+      baseY + elevSpan * 0.6 + horizontalExtent * 0.08,
+      cameraDistance * 0.9,
     );
-    refs.controls.target.set(0, baseY + elevSpan * 0.3, 0);
+    refs.controls.target.set(0, baseY + elevSpan * 0.4, 0);
     refs.controls.update();
   }, [open, projectionData, verticalExaggeration, highlightRouteKey]);
 

@@ -20,6 +20,8 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
+import Track3DModal from "../components/track/Track3DModal";
+import type { Track3DRoute } from "../components/track/Track3DModal";
 
 // Fix default Leaflet marker icon
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
@@ -112,6 +114,7 @@ export default function TrackLinesMapPage() {
   const [selectedRouteKey, setSelectedRouteKey] = useState<string | null>(null);
   const [hoveredRouteKey, setHoveredRouteKey] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [show3D, setShow3D] = useState(false);
   const { trackId } = useParams();
 
   const lineRefs = useRef<Record<string, L.Path>>({});
@@ -159,6 +162,22 @@ export default function TrackLinesMapPage() {
       ) ?? null
     );
   }, [items, selectedRouteKey]);
+
+  const routes3D = useMemo<Track3DRoute[]>(
+    () =>
+      items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        seq: item.seq,
+        route_no: item.route_no,
+        length_m: item.length_m,
+        elev_min: item.elev_min,
+        elev_max: item.elev_max,
+        elevations: item.elevations ?? [],
+        coordinates: item.geojson?.geometry?.coordinates ?? [],
+      })),
+    [items],
+  );
 
   const elevationChartData = useMemo(() => {
     if (!selectedRoute?.elevations?.length) return [];
@@ -330,6 +349,21 @@ export default function TrackLinesMapPage() {
                   View Official Details →
                 </a>
               )}
+
+              <button
+                type="button"
+                onClick={() => setShow3D(true)}
+                disabled={items.length === 0}
+                className="btn btn-sm w-100 mt-3"
+                style={{
+                  background: "#ff69b4",
+                  color: "#fff",
+                  border: "none",
+                  fontWeight: 600,
+                }}
+              >
+                View Track in 3D
+              </button>
             </div>
           </div>
         </div>
@@ -366,18 +400,36 @@ export default function TrackLinesMapPage() {
               </div>
             </div>
 
-            <button
-              onClick={() => setSelectedRouteKey(null)}
-              style={{
-                border: "none",
-                background: "transparent",
-                fontSize: 20,
-                lineHeight: 1,
-                cursor: "pointer",
-              }}
-            >
-              ×
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => setShow3D(true)}
+                style={{
+                  border: "1px solid #ff69b4",
+                  background: "#fff",
+                  color: "#c2185b",
+                  borderRadius: 6,
+                  padding: "4px 10px",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                View in 3D
+              </button>
+              <button
+                onClick={() => setSelectedRouteKey(null)}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  fontSize: 20,
+                  lineHeight: 1,
+                  cursor: "pointer",
+                }}
+              >
+                ×
+              </button>
+            </div>
           </div>
 
           {elevationChartData.length > 0 ? (
@@ -464,6 +516,14 @@ export default function TrackLinesMapPage() {
           {error}
         </div>
       )}
+
+      <Track3DModal
+        open={show3D}
+        onClose={() => setShow3D(false)}
+        trackName={trackInfo?.name ?? "Track"}
+        routes={routes3D}
+        highlightRouteKey={selectedRouteKey}
+      />
     </div>
   );
 }

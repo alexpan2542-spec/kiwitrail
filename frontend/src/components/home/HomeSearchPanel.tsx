@@ -139,7 +139,7 @@ export default function HomeSearchPanel({
           </svg>
           <span className="fw-bold">KiwiTrail</span>
           <span className="small text-muted fw-normal ms-auto">
-            version 2026.5.21
+            version 2026.6.3
           </span>
         </div>
         <div

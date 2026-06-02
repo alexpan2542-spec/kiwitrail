@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends
 from fastapi import FastAPI
+from fastapi import HTTPException
 from fastapi import UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -12,6 +13,7 @@ from starlette.staticfiles import StaticFiles
 
 from db import engine, get_db, SessionLocal
 from repositories.region_repository import select_dem_tif_polygons_geojson
+from repositories.track_3d_repository import select_track_3d_geojson_by_track_id
 from repositories.track_repository import select_track_by_id, select_track_routes_by_track_id
 from schema import TrackSearchRequest, CommentSchema, FavouriteSchema
 from services.search_gazetteer_service import gazetteer_searcher
@@ -64,8 +66,17 @@ async def get_track_details(track_id: int, db: Session = Depends(get_db)):
     return select_track_routes_by_track_id(db, track_id)
 
 @app.get("/track-info/{track_id}")
-async def get_track_details(track_id: int, db: Session = Depends(get_db)):
+async def get_track_info(track_id: int, db: Session = Depends(get_db)):
     return select_track_by_id(db, track_id)
+
+
+@app.get("/tracks/{track_id}/3d")
+async def get_track_3d(track_id: int, db: Session = Depends(get_db)):
+    try:
+        return select_track_3d_geojson_by_track_id(db, track_id)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
 
 @app.get("/regions/{region_code}")
 def get_region(region_code: str):

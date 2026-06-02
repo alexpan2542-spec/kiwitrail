@@ -361,17 +361,9 @@ export default function HomeSelectedItemPanel({
             <strong>Type:</strong> {item.type}
           </p>
 
-          {item.type === "track" && (
-            <a
-              href={`track/${item.id}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-blue-600 text-decoration-underline mt-2 d-block"
-            >
-              Track Details →
-            </a>
-          )}
-          {(item.type === "hut" || item.type === "campsite") &&
+          {(item.type === "hut" ||
+            item.type === "campsite" ||
+            item.type === "track") &&
             item.source_page_url && (
               <a
                 href={item.source_page_url}

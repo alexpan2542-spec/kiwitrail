@@ -104,3 +104,56 @@ def test_get_track_routes_success(mock_select_routes, client):
     assert data["features"][0]["geometry"]["type"] == "LineString"
 
     mock_select_routes.assert_called_once()
+
+
+# ==========================================
+# 4. Test API: /tracks/{track_id}/3d
+# ==========================================
+
+@patch("main.select_track_3d_geojson_by_track_id")
+def test_get_track_3d_success(mock_select_3d, client):
+    mock_select_3d.return_value = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {
+                    "track_id": 1,
+                    "route_no": 1,
+                    "step_m": 10,
+                    "length_m": 5000,
+                    "elev_min": 200,
+                    "elev_max": 800,
+                },
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [171.5, -43.5, 200],
+                        [171.51, -43.51, 250],
+                    ],
+                },
+            }
+        ],
+    }
+
+    response = client.get("/tracks/1/3d")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["type"] == "FeatureCollection"
+    assert len(data["features"]) == 1
+    assert data["features"][0]["geometry"]["coordinates"][0][2] == 200
+
+    mock_select_3d.assert_called_once()
+    args, _kwargs = mock_select_3d.call_args
+    assert args[1] == 1
+
+
+@patch("main.select_track_3d_geojson_by_track_id")
+def test_get_track_3d_empty(mock_select_3d, client):
+    mock_select_3d.return_value = {"type": "FeatureCollection", "features": []}
+
+    response = client.get("/tracks/99/3d")
+
+    assert response.status_code == 200
+    assert response.json()["features"] == []

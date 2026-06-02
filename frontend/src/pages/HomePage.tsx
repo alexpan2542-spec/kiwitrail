@@ -11,7 +11,14 @@ import {
   Tooltip,
   CircleMarker,
 } from "react-leaflet";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { GeoJsonObject } from "geojson";
 import L from "leaflet";
 
@@ -27,7 +34,18 @@ import {
 import GazetteerResultsModal, {
   type GazetteerSearchHit,
 } from "../components/home/GazetteerResultsModal";
+import MapViewMemory, {
+  type MapViewMemoryHandle,
+} from "../components/map/MapViewMemory";
 import { HomeAuthProvider } from "../contexts/HomeAuthContext";
+
+const Track3DPanel = lazy(() => import("../components/track3d/Track3DPanel"));
+
+/** Width of the bottom-right 3D preview (used for map fitBounds padding). */
+const TRACK_3D_PANEL_WIDTH = 300;
+const TRACK_FIT_MAX_ZOOM = 15;
+/** Map zoom when a track is deselected (map click). */
+const TRACK_DESELECT_ZOOM = 10;
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -125,27 +143,32 @@ function boundsCenterFromGeoJson(
 function FitBoundsToGeoJSON({
   data,
   leftPanelWidth,
+  rightPanelWidth = 0,
   padding = 24,
+  maxZoom,
 }: {
   data: GeoJsonObject;
   leftPanelWidth: number;
+  rightPanelWidth?: number;
   padding?: number;
+  maxZoom?: number;
 }) {
   const map = useMap();
 
   useEffect(() => {
     if (!data) return;
 
-    const layer = L.geoJSON(data as any);
+    const layer = L.geoJSON(data as GeoJsonObject);
     const bounds = layer.getBounds();
 
     if (bounds.isValid()) {
       map.fitBounds(bounds, {
         paddingTopLeft: [leftPanelWidth + padding, padding],
-        paddingBottomRight: [padding, padding],
+        paddingBottomRight: [rightPanelWidth + padding, padding],
+        maxZoom,
       });
     }
-  }, [data, map, leftPanelWidth]);
+  }, [data, map, leftPanelWidth, rightPanelWidth, padding, maxZoom]);
 
   return null;
 }
@@ -255,6 +278,7 @@ export default function HomePage2() {
   } | null>(null);
 
   const detailsPanelRef = useRef<HTMLDivElement | null>(null);
+  const mapViewMemoryRef = useRef<MapViewMemoryHandle | null>(null);
 
   const SEARCH_PANEL_EXPANDED_W = 380;
   const SEARCH_PANEL_COLLAPSED_W = 56;
@@ -488,13 +512,13 @@ export default function HomePage2() {
           return [...prev, item];
         });
       }
+      mapViewMemoryRef.current?.save();
       setSelectedTrack(null);
       setSelectedTrackId(null);
       setSelectedItem(item);
       setSearchPanelCollapsed(true);
       setCommentsOpen(false);
       if (item.type === "track") {
-        console.log(item.geom_geojson);
         setSelectedTrack(item.geom_geojson ?? null);
         setSelectedTrackId(item.id);
       }
@@ -657,6 +681,7 @@ export default function HomePage2() {
             </BaseLayer>
           </LayersControl>
           <ZoomControl position="topright" />
+          <MapViewMemory memoryRef={mapViewMemoryRef} />
           <MapStatus />
           {selectedTrack && (
             <>
@@ -734,13 +759,15 @@ export default function HomePage2() {
             )}
           <MapClickHandler
             onMapClick={() => {
+              if (!selectedItem) return;
+              const wasTrack = selectedItem.type === "track";
+              mapViewMemoryRef.current?.restore(
+                wasTrack ? { zoom: TRACK_DESELECT_ZOOM } : undefined,
+              );
               setSelectedItem(null);
               setSelectedTrack(null);
               setSelectedTrackId(null);
-              setRegionGeoJson(null);
-              setGazetteerMapOverlay(null);
               setWeatherEmbedUrl(null);
-              setSearchPanelCollapsed(false);
               setCommentsOpen(false);
             }}
           />
@@ -750,8 +777,9 @@ export default function HomePage2() {
               position={[item.lat, item.lng]}
               icon={getIconByType(item.type, item.difficulty)}
               eventHandlers={{
-                click: () => {
-                  showDetails(item);
+                click: (e) => {
+                  L.DomEvent.stopPropagation(e);
+                  void showDetails(item);
                 },
               }}
             >
@@ -765,12 +793,26 @@ export default function HomePage2() {
               </Tooltip>
             </Marker>
           ))}
-          {selectedItem && (
-            <FlyToItem
-              item={selectedItem}
-              zoom={10}
-              leftPanelWidth={searchPanelWidth}
+          {selectedItem?.type === "track" && selectedTrack ? (
+            <FitBoundsToGeoJSON
+              data={selectedTrack}
+              leftPanelWidth={
+                MAIN_PANEL_LEFT +
+                searchPanelWidth +
+                DETAIL_PANEL_WIDTH +
+                PANEL_GAP * 2
+              }
+              rightPanelWidth={TRACK_3D_PANEL_WIDTH + 56}
+              maxZoom={TRACK_FIT_MAX_ZOOM}
             />
+          ) : (
+            selectedItem && (
+              <FlyToItem
+                item={selectedItem}
+                zoom={11}
+                leftPanelWidth={searchPanelWidth}
+              />
+            )
           )}
         </MapContainer>
         <HomeSearchPanel
@@ -814,6 +856,15 @@ export default function HomePage2() {
               });
             }}
           />
+        )}
+        {selectedItem?.type === "track" && (
+          <Suspense fallback={null}>
+            <Track3DPanel
+              trackId={selectedItem.id}
+              trackName={selectedItem.name}
+              backendUrl={backendUrl}
+            />
+          </Suspense>
         )}
         {weatherEmbedUrl && !commentsOpen && (
           <WeatherWidgetPanel

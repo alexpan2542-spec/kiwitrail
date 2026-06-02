@@ -25,3 +25,6 @@ ADD COLUMN IF NOT EXISTS elevation_profile integer[];
 ALTER TABLE kiwi_track_route
 ADD COLUMN IF NOT EXISTS elev_gain integer,
 ADD COLUMN IF NOT EXISTS elev_loss integer;
+
+ALTER TABLE kiwi_track_route
+ADD COLUMN IF NOT EXISTS elevation_step_m integer;

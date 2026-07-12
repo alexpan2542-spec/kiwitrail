@@ -5,16 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d96262dd-b54f-4d3e-afd1-469f891a0cbb" name="Changes" comment="update db.py to check 1st time cannot access issue">
-      <change afterPath="$PROJECT_DIR$/../assets/KiwiTrail_Final_Report.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../assets/KiwiTrail_UAT_Manual_Report_v1.0 (1).docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assets/search.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/backend.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/backend.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/schema.py" beforeDir="false" afterPath="$PROJECT_DIR$/schema.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/src/my.css" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/my.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -110,7 +101,7 @@
       <updated>1781125932413</updated>
       <workItem from="1781125933443" duration="1207000" />
       <workItem from="1783837411086" duration="3565000" />
-      <workItem from="1783892897392" duration="2817000" />
+      <workItem from="1783892897392" duration="4389000" />
     </task>
     <task id="LOCAL-00001" summary="update db.py to check 1st time cannot access issue">
       <option name="closed" value="true" />

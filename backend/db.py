@@ -15,6 +15,8 @@ class Base(DeclarativeBase):
 engine = create_engine(
     DATABASE_URL,
     echo=True,   # shows SQL in terminal, useful for learning
+    pool_pre_ping=True,   # test connections before use; reconnect if stale
+    pool_recycle=1800,    # recycle connections every 30 min
 )
 
 SessionLocal = sessionmaker(

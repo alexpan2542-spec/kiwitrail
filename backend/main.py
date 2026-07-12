@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from starlette.staticfiles import StaticFiles
 
 from db import engine, get_db, SessionLocal
+from repositories.region_overview_repository import select_regions_overview
 from repositories.region_repository import select_dem_tif_polygons_geojson
 from repositories.track_3d_repository import select_track_3d_geojson_by_track_id
 from repositories.track_repository import select_track_by_id, select_track_routes_by_track_id
@@ -76,6 +77,15 @@ async def get_track_3d(track_id: int, db: Session = Depends(get_db)):
         return select_track_3d_geojson_by_track_id(db, track_id)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/regions/overview")
+def get_regions_overview(db: Session = Depends(get_db)):
+    regions = select_regions_overview(db)
+    return {
+        "count": len(regions),
+        "regions": regions,
+    }
 
 
 @app.get("/regions/{region_code}")

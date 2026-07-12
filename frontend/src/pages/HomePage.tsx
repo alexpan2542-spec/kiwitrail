@@ -34,6 +34,10 @@ import {
 import GazetteerResultsModal, {
   type GazetteerSearchHit,
 } from "../components/home/GazetteerResultsModal";
+import HomeWelcomeOverlay from "../components/home/HomeWelcomeOverlay";
+import RegionOverviewLayer, {
+  type RegionOverviewItem,
+} from "../components/home/RegionOverviewLayer";
 import MapViewMemory, {
   type MapViewMemoryHandle,
 } from "../components/map/MapViewMemory";
@@ -297,9 +301,13 @@ export default function HomePage2() {
   /** Same slot as weather side panel; mutually exclusive with `weatherEmbedUrl` when open. */
   const [commentsOpen, setCommentsOpen] = useState(false);
 
-  const handleRegionChange = async (
-    event: React.ChangeEvent<HTMLSelectElement>,
-  ) => {
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  const [regionOverview, setRegionOverview] = useState<RegionOverviewItem[]>(
+    [],
+  );
+
+  const selectRegionByCode = useCallback(async (regionCode: string) => {
+    setWelcomeDismissed(true);
     setGazetteerMapOverlay(null);
     setItems([]);
     setFuzzySearch("");
@@ -313,7 +321,6 @@ export default function HomePage2() {
     setCommentsOpen(false);
     setSearchPanelCollapsed(false);
 
-    const regionCode = event.target.value;
     setSelectedRegionCode(regionCode);
     setRegionGeoJson(null);
 
@@ -334,10 +341,52 @@ export default function HomePage2() {
     } catch (error) {
       console.error("Region fetch error:", error);
     }
+  }, []);
+
+  const handleRegionChange = async (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    await selectRegionByCode(event.target.value);
   };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadRegionOverview = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/regions/overview`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch region overview");
+        }
+        const data = await response.json();
+        if (!cancelled) {
+          setRegionOverview((data.regions ?? []) as RegionOverviewItem[]);
+        }
+      } catch (error) {
+        console.error("Region overview fetch error:", error);
+      }
+    };
+
+    void loadRegionOverview();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const isHomeIdle =
+    !selectedRegionCode &&
+    items.length === 0 &&
+    !gazetteerMapOverlay &&
+    !selectedItem;
+
+  const showRegionOverview = isHomeIdle && regionOverview.length > 0;
+
+  const showWelcomeOverlay = isHomeIdle && !welcomeDismissed;
 
   const handleSearch = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setWelcomeDismissed(true);
     setIsLoading(true);
     const regionSnapshot = regionGeoJson;
     setRegionGeoJson(null);
@@ -683,6 +732,14 @@ export default function HomePage2() {
           <ZoomControl position="topright" />
           <MapViewMemory memoryRef={mapViewMemoryRef} />
           <MapStatus />
+          {showRegionOverview && (
+            <RegionOverviewLayer
+              regions={regionOverview}
+              onRegionClick={(regionCode) => {
+                void selectRegionByCode(regionCode);
+              }}
+            />
+          )}
           {selectedTrack && (
             <>
               <GeoJSON
@@ -815,6 +872,11 @@ export default function HomePage2() {
             )
           )}
         </MapContainer>
+        <HomeWelcomeOverlay
+          visible={showWelcomeOverlay}
+          mapAreaLeft={MAIN_PANEL_LEFT + searchPanelWidth}
+          onDismiss={() => setWelcomeDismissed(true)}
+        />
         <HomeSearchPanel
           width={searchPanelWidth}
           collapsed={searchPanelCollapsed}

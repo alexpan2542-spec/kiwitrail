@@ -49,3 +49,8 @@ class FavouriteSchema(BaseModel):
     user_email: str = Field(..., min_length=3, max_length=320)
     item_type: str = Field(..., min_length=1, max_length=64)
     item_id: int = Field(..., ge=1)
+
+
+class HomeVisitSchema(BaseModel):
+    user_email: Optional[str] = Field(default=None, max_length=320)
+    page: str = Field(default="home", min_length=1, max_length=64)

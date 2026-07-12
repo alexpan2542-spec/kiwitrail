@@ -1,5 +1,8 @@
 import type { ChangeEvent, FormEvent, RefObject } from "react";
 
+import { APP_VERSION } from "../../version";
+import { HOME_REGION_ONBOARDING_TARGET_ID } from "./HomeWelcomeOverlay";
+
 export type HomeSearchPanelProps = {
   panelRef?: RefObject<HTMLDivElement | null>;
   /** Panel width in px; parent should match map offset math (e.g. 380 expanded, 56 collapsed). */
@@ -7,7 +10,10 @@ export type HomeSearchPanelProps = {
   /** When true, form is hidden and a narrow strip with expand control is shown. */
   collapsed?: boolean;
   onExpandSearch?: () => void;
+  /** When true, region picker is spotlighted for the welcome onboarding step. */
+  highlightRegion?: boolean;
   selectedRegionCode: string;
+  regionLoading?: boolean;
   onRegionChange: (event: ChangeEvent<HTMLSelectElement>) => void;
   selectedDifficulty: string;
   onSelectedDifficultyChange: (value: string) => void;
@@ -30,7 +36,9 @@ export default function HomeSearchPanel({
   width = 380,
   collapsed = false,
   onExpandSearch,
+  highlightRegion = false,
   selectedRegionCode,
+  regionLoading = false,
   onRegionChange,
   selectedDifficulty,
   onSelectedDifficultyChange,
@@ -139,7 +147,7 @@ export default function HomeSearchPanel({
           </svg>
           <span className="fw-bold">KiwiTrail</span>
           <span className="small text-muted fw-normal ms-auto">
-            version 2026.6.3
+            version {APP_VERSION}
           </span>
         </div>
         <div
@@ -154,16 +162,24 @@ export default function HomeSearchPanel({
             className="d-flex flex-column flex-grow-1 overflow-hidden"
           >
             <div className="flex-grow-1 overflow-auto pe-1">
-              <label htmlFor="regions" className="form-label">
-                Choose a region for hiking
-              </label>
-              <div className="mb-3">
-                <select
-                  id="regions"
-                  className="form-select"
-                  value={selectedRegionCode}
-                  onChange={onRegionChange}
-                >
+              <div
+                id={HOME_REGION_ONBOARDING_TARGET_ID}
+                className={`home-region-onboarding mb-3${
+                  highlightRegion ? " home-region-onboarding--active" : ""
+                }`}
+              >
+                <label htmlFor="regions" className="form-label">
+                  Choose a region for hiking
+                </label>
+                <div className="mb-0">
+                  <select
+                    id="regions"
+                    className="form-select home-region-onboarding__select"
+                    value={selectedRegionCode}
+                    onChange={onRegionChange}
+                    disabled={regionLoading}
+                    aria-busy={regionLoading}
+                  >
                   <option value="">All New Zealand</option>
                   <option value="01">Northland Region</option>
                   <option value="02">Auckland</option>
@@ -183,6 +199,25 @@ export default function HomeSearchPanel({
                   <option value="18">Marlborough Region</option>
                   <option value="99">Area Outside Region</option>
                 </select>
+                {regionLoading ? (
+                  <p
+                    className="home-region-loading small text-muted mb-0 mt-2 d-flex align-items-center gap-2"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <span
+                      className="spinner-border spinner-border-sm home-region-loading__spinner"
+                      aria-hidden
+                    />
+                    Loading region…
+                  </p>
+                ) : null}
+                {highlightRegion ? (
+                  <p className="home-region-onboarding__hint small mb-0 mt-2">
+                    Start here — pick a region to explore
+                  </p>
+                ) : null}
+              </div>
               </div>
 
               <div className="mb-3">

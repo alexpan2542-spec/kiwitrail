@@ -142,6 +142,80 @@
   color-scheme: light;
 }
 
+/* Welcome onboarding: dim map + rest of UI, cut out only the region selector */
+.home-welcome-onboarding-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.home-welcome-region-mask {
+  position: fixed;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.home-welcome-region-ring {
+  position: fixed;
+  pointer-events: none;
+  border-radius: 0;
+  outline: 3px solid #0d6efd;
+  outline-offset: 0;
+  animation: home-welcome-region-ring-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes home-welcome-region-ring-pulse {
+  0%,
+  100% {
+    outline-color: #0d6efd;
+    box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4);
+  }
+  50% {
+    outline-color: #6ea8fe;
+    box-shadow: 0 0 12px 4px rgba(13, 110, 253, 0.35);
+  }
+}
+
+.home-welcome-overlay__shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.home-welcome-overlay__dialog {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 420px;
+  max-height: min(92vh, 640px);
+}
+
+.home-region-onboarding--active .form-label {
+  color: #0d6efd;
+  font-weight: 700;
+}
+
+.home-region-onboarding--active .home-region-onboarding__select {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.2);
+}
+
+.home-region-onboarding__hint {
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+.home-region-loading__spinner {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-width: 0.15em;
+  flex-shrink: 0;
+}
+
 /* Bottom-right map centre readout: same dark chip language as layers toggle / account (Bootstrap btn-dark) */
 .kiwitrail-home .leaflet-container .kiwi-map-coords {
   position: absolute;
@@ -595,94 +669,5 @@
 
 .favourites-modal__thumb--placeholder {
   background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-}
-
-/* Home welcome + region overview */
-.home-welcome-box {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1100;
-  width: min(360px, calc(100vw - 2rem));
-  pointer-events: auto;
-  animation: home-welcome-fade-in 0.5s ease;
-}
-
-@keyframes home-welcome-fade-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, calc(-50% + 12px));
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
-}
-
-.home-welcome-box__card {
-  border: none;
-  border-radius: 0 !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-}
-
-.home-welcome-box__title {
-  color: #0d6efd;
-  font-weight: 600;
-}
-
-.home-welcome-box__text {
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.region-overview-label-anchor {
-  background: transparent;
-  border: none;
-}
-
-.leaflet-tooltip.region-overview-tooltip {
-  background: #fff;
-  border: 1px solid rgba(13, 110, 253, 0.35);
-  border-radius: 6px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
-  color: #212529;
-  padding: 0;
-  pointer-events: none;
-  animation: region-tooltip-pop 0.35s ease;
-}
-
-.leaflet-tooltip.region-overview-tooltip::before {
-  display: none;
-}
-
-@keyframes region-tooltip-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.85);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.region-overview-tooltip__inner {
-  padding: 0.35rem 0.55rem;
-  text-align: center;
-  min-width: 5.5rem;
-}
-
-.region-overview-tooltip__name {
-  font-size: 0.68rem;
-  font-weight: 600;
-  line-height: 1.2;
-  color: #0d6efd;
-  max-width: 7rem;
-}
-
-.region-overview-tooltip__count {
-  font-size: 0.62rem;
-  color: #6c757d;
-  margin-top: 0.15rem;
 }
 

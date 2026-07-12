@@ -34,10 +34,7 @@ import {
 import GazetteerResultsModal, {
   type GazetteerSearchHit,
 } from "../components/home/GazetteerResultsModal";
-import HomeWelcomeOverlay from "../components/home/HomeWelcomeOverlay";
-import RegionOverviewLayer, {
-  type RegionOverviewItem,
-} from "../components/home/RegionOverviewLayer";
+import HomeWelcomeGate from "../components/home/HomeWelcomeGate";
 import MapViewMemory, {
   type MapViewMemoryHandle,
 } from "../components/map/MapViewMemory";
@@ -300,14 +297,18 @@ export default function HomePage2() {
   const [weatherEmbedUrl, setWeatherEmbedUrl] = useState<string | null>(null);
   /** Same slot as weather side panel; mutually exclusive with `weatherEmbedUrl` when open. */
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [regionLoading, setRegionLoading] = useState(false);
 
-  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
-  const [regionOverview, setRegionOverview] = useState<RegionOverviewItem[]>(
-    [],
-  );
+  useEffect(() => {
+    if (welcomeOpen && searchPanelCollapsed) {
+      setSearchPanelCollapsed(false);
+    }
+  }, [welcomeOpen, searchPanelCollapsed]);
 
-  const selectRegionByCode = useCallback(async (regionCode: string) => {
-    setWelcomeDismissed(true);
+  const handleRegionChange = async (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
     setGazetteerMapOverlay(null);
     setItems([]);
     setFuzzySearch("");
@@ -321,14 +322,20 @@ export default function HomePage2() {
     setCommentsOpen(false);
     setSearchPanelCollapsed(false);
 
+    const regionCode = event.target.value;
     setSelectedRegionCode(regionCode);
     setRegionGeoJson(null);
+
+    if (regionCode) {
+      setWelcomeOpen(false);
+    }
 
     if (!regionCode) {
       setRegionGeoJson(null);
       return;
     }
 
+    setRegionLoading(true);
     try {
       const response = await fetch(`${backendUrl}/regions/${regionCode}`);
       if (!response.ok) {
@@ -340,53 +347,13 @@ export default function HomePage2() {
       setRegionGeoJson(geometry);
     } catch (error) {
       console.error("Region fetch error:", error);
+    } finally {
+      setRegionLoading(false);
     }
-  }, []);
-
-  const handleRegionChange = async (
-    event: React.ChangeEvent<HTMLSelectElement>,
-  ) => {
-    await selectRegionByCode(event.target.value);
   };
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadRegionOverview = async () => {
-      try {
-        const response = await fetch(`${backendUrl}/regions/overview`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch region overview");
-        }
-        const data = await response.json();
-        if (!cancelled) {
-          setRegionOverview((data.regions ?? []) as RegionOverviewItem[]);
-        }
-      } catch (error) {
-        console.error("Region overview fetch error:", error);
-      }
-    };
-
-    void loadRegionOverview();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const isHomeIdle =
-    !selectedRegionCode &&
-    items.length === 0 &&
-    !gazetteerMapOverlay &&
-    !selectedItem;
-
-  const showRegionOverview = isHomeIdle && regionOverview.length > 0;
-
-  const showWelcomeOverlay = isHomeIdle && !welcomeDismissed;
 
   const handleSearch = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setWelcomeDismissed(true);
     setIsLoading(true);
     const regionSnapshot = regionGeoJson;
     setRegionGeoJson(null);
@@ -704,6 +671,11 @@ export default function HomePage2() {
             void showDetails(item, { replaceMapItems: true });
           }}
         />
+        <HomeWelcomeGate
+          backendUrl={backendUrl}
+          open={welcomeOpen}
+          onOpenChange={setWelcomeOpen}
+        />
         <MapContainer
           center={[-41.2865, 170]}
           zoom={5}
@@ -732,14 +704,6 @@ export default function HomePage2() {
           <ZoomControl position="topright" />
           <MapViewMemory memoryRef={mapViewMemoryRef} />
           <MapStatus />
-          {showRegionOverview && (
-            <RegionOverviewLayer
-              regions={regionOverview}
-              onRegionClick={(regionCode) => {
-                void selectRegionByCode(regionCode);
-              }}
-            />
-          )}
           {selectedTrack && (
             <>
               <GeoJSON
@@ -872,16 +836,13 @@ export default function HomePage2() {
             )
           )}
         </MapContainer>
-        <HomeWelcomeOverlay
-          visible={showWelcomeOverlay}
-          mapAreaLeft={MAIN_PANEL_LEFT + searchPanelWidth}
-          onDismiss={() => setWelcomeDismissed(true)}
-        />
         <HomeSearchPanel
           width={searchPanelWidth}
           collapsed={searchPanelCollapsed}
+          highlightRegion={welcomeOpen}
           onExpandSearch={() => setSearchPanelCollapsed(false)}
           selectedRegionCode={selectedRegionCode}
+          regionLoading={regionLoading}
           onRegionChange={handleRegionChange}
           selectedDifficulty={selectedDifficulty}
           onSelectedDifficultyChange={setSelectedDifficulty}

@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException
+from fastapi import Request
 from fastapi import UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -12,11 +13,11 @@ from sqlalchemy.orm import Session
 from starlette.staticfiles import StaticFiles
 
 from db import engine, get_db, SessionLocal
-from repositories.region_overview_repository import select_regions_overview
 from repositories.region_repository import select_dem_tif_polygons_geojson
 from repositories.track_3d_repository import select_track_3d_geojson_by_track_id
 from repositories.track_repository import select_track_by_id, select_track_routes_by_track_id
-from schema import TrackSearchRequest, CommentSchema, FavouriteSchema
+from schema import TrackSearchRequest, CommentSchema, FavouriteSchema, HomeVisitSchema
+from repositories.home_visit_repository import insert_home_visit
 from services.search_gazetteer_service import gazetteer_searcher
 from services.search_items_service import search_items
 
@@ -42,6 +43,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+KIWI_SERVER = os.getenv("KIWI_SERVER", "local")
 
 UPLOAD_DIR = os.getenv("COMMENT_UPLOAD_DIR", "uploads/comments")
 if not os.path.exists(UPLOAD_DIR):
@@ -77,15 +80,6 @@ async def get_track_3d(track_id: int, db: Session = Depends(get_db)):
         return select_track_3d_geojson_by_track_id(db, track_id)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
-
-
-@app.get("/regions/overview")
-def get_regions_overview(db: Session = Depends(get_db)):
-    regions = select_regions_overview(db)
-    return {
-        "count": len(regions),
-        "regions": regions,
-    }
 
 
 @app.get("/regions/{region_code}")
@@ -244,6 +238,33 @@ async def remove_favourite(
         "favoured": False,
         "removed": removed,
     }
+
+
+def _client_ip(request: Request) -> str | None:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    if request.client:
+        return request.client.host
+    return None
+
+
+@app.post("/analytics/home-visit")
+def log_home_visit(
+    body: HomeVisitSchema,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    visit_id = insert_home_visit(
+        db,
+        server=KIWI_SERVER,
+        ip_address=_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+        referer=request.headers.get("referer"),
+        user_email=body.user_email,
+        page=body.page,
+    )
+    return {"status": "ok", "id": visit_id}
 
 
 @app.post("/upload-image")
